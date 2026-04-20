@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SpotifyMixer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.css" rel="stylesheet" />
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --spotify-black: #121212;
+            --spotify-dark-grey: #181818;
+            --spotify-light-grey: #282828;
+            --spotify-green: #1DB954;
+        }
+
+        body {
+            background-color: var(--spotify-black);
+            color: white;
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+
+        .rounded-main {
+            border-radius: 16px;
+        }
+
+        .rounded-inner {
+            border-radius: 12px;
+        }
+
+        .btn-spotify {
+            background-color: var(--spotify-green);
+            color: black;
+            font-weight: 800;
+            border-radius: 500px;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-spotify:hover {
+            background-color: #1ed760;
+            transform: scale(1.02);
+        }
+
+        .card-artist {
+            background: #181818;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .card-artist:hover {
+            background: #242424;
+            transform: translateY(-4px);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* サイドバーアニメーション補助 */
+        .drawer-side {
+            z-index: 100;
+        }
+
+        .menu li>details>summary:after {
+            transform: translateY(-50%) rotate(45deg);
+        }
+    </style>
+</head>
+
+<body class="h-screen overflow-hidden">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const App = () => {
+            const [view, setView] = useState('list');
+            const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+            // サンプルデータ
+            const [artists, setArtists] = useState([
+                {
+                    spotifyId: "1", name: "Vaundy", nameEn: "Vaundy",
+                    img: "https://images.unsplash.com/photo-1514525253361-bee8a48790c3?w=400&h=400&fit=crop",
+                    genre: "J-Pop, Rock", trigger: "SNSで話題", tags: ["チル", "作業用"]
+                },
+                {
+                    spotifyId: "2", name: "藤井 風", nameEn: "Fujii Kaze",
+                    img: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=400&h=400&fit=crop",
+                    genre: "J-Pop, Soul", trigger: "Spotifyレコメンド", tags: ["エモい", "夜に聴きたい"]
+                }
+            ]);
+
+            const closeDrawer = () => {
+                const drawerCheckbox = document.getElementById('my-drawer');
+                if (drawerCheckbox) drawerCheckbox.checked = false;
+            };
+
+            return (
+                <div className="drawer h-full">
+                    <input id="my-drawer" type="checkbox" className="drawer-toggle" />
+
+                    <div className="drawer-content flex flex-col h-full bg-[#121212]">
+                        {/* --- HEADER --- */}
+                        <header className="px-6 py-2 flex items-center justify-between border-b border-white/5 bg-black/60 backdrop-blur-xl sticky top-0 z-40">
+                            <div className="flex items-center gap-4">
+                                <label htmlFor="my-drawer" className="btn btn-ghost btn-circle drawer-button text-white">
+                                    <i className="fa-solid fa-bars text-xl"></i>
+                                </label>
+                                <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('list')}>
+                                    <i className="fa-brands fa-spotify text-2xl text-[#1DB954]"></i>
+                                    <span className="font-black tracking-tighter text-lg uppercase">SpotifyMixer</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                {/* お知らせドロップダウン */}
+                                <div className="dropdown dropdown-end">
+                                    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle text-gray-400 hover:text-white">
+                                        <div className="indicator">
+                                            <i className="fa-regular fa-bell text-lg"></i>
+                                            <span className="badge badge-xs badge-primary indicator-item border-none bg-[#1DB954]"></span>
+                                        </div>
+                                    </div>
+                                    <div tabIndex={0} className="mt-3 z-[1] card card-compact dropdown-content w-72 bg-[#282828] shadow-2xl border border-white/10">
+                                        <div className="card-body">
+                                            <h3 className="font-bold text-sm border-b border-white/5 pb-2">Notifications</h3>
+                                            <div className="flex flex-col gap-3 py-2">
+                                                <div className="text-xs hover:bg-white/5 p-2 rounded cursor-pointer">
+                                                    <p className="text-white font-bold">新機能の追加</p>
+                                                    <p className="text-gray-400">プレイリスト生成が高速化されました</p>
+                                                </div>
+                                                <div className="text-xs hover:bg-white/5 p-2 rounded cursor-pointer">
+                                                    <p className="text-white font-bold">Spotify 連携</p>
+                                                    <p className="text-gray-400">認証トークンの更新が必要です</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* ユーザーメニュー */}
+                                <div className="dropdown dropdown-end">
+                                    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
+                                        <div className="w-8 rounded-full ring ring-[#1DB954] ring-offset-base-100 ring-offset-2 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
+                                            <span className="text-[10px] font-black">UN</span>
+                                        </div>
+                                    </div>
+                                    <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow-2xl menu menu-sm dropdown-content bg-[#282828] border border-white/10 rounded-inner w-52">
+                                        <li><a><i className="fa-solid fa-user-circle w-5"></i> プロフィール</a></li>
+                                        <li><a><i className="fa-solid fa-cog w-5"></i> アプリ設定</a></li>
+                                        <div className="divider my-1 before:bg-white/5 after:bg-white/5"></div>
+                                        <li><a className="text-red-400"><i className="fa-solid fa-sign-out-alt w-5"></i> ログアウト</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </header>
+
+                        {/* --- MAIN AREA --- */}
+                        <main className="flex-1 overflow-y-auto no-scrollbar">
+                            <div className="w-full px-6 py-8">
+                                {view === 'list' && (
+                                    <div className="fade-in">
+                                        <div className="flex items-center justify-between mb-8">
+                                            <h2 className="text-3xl font-black">Artists Library</h2>
+                                            <button className="btn-spotify btn btn-sm px-6">追加</button>
+                                        </div>
+
+                                        {/* フルワイドに広がるグリッド */}
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-6">
+                                            {artists.map((a, idx) => (
+                                                <div key={idx} className="card-artist rounded-main p-4 cursor-pointer group flex flex-col">
+                                                    <div className="aspect-square mb-4 overflow-hidden rounded-inner shadow-xl">
+                                                        <img src={a.img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                    </div>
+                                                    <h3 className="font-bold text-sm truncate">{a.name}</h3>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2 truncate">{a.nameEn}</p>
+                                                    <div className="flex flex-wrap gap-1 mt-auto">
+                                                        {a.tags.map(t => (
+                                                            <span key={t} className="text-[9px] bg-white/5 px-2 py-0.5 rounded-inner text-gray-400 border border-white/5">#{t}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    </div>
+
+                    {/* --- SIDEBAR (DRAWER) --- */}
+                    <div className="drawer-side">
+                        <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
+                        <div className="menu p-4 w-72 min-h-full bg-[#121212] border-r border-white/5 text-gray-300 space-y-4">
+                            <div className="flex items-center gap-2 px-4 py-4 mb-4 border-b border-white/5">
+                                <i className="fa-brands fa-spotify text-2xl text-[#1DB954]"></i>
+                                <span className="text-xl font-black tracking-tighter text-white uppercase">Menu</span>
+                            </div>
+
+                            <ul className="space-y-2 font-bold text-sm">
+                                <li>
+                                    <a onClick={() => { setView('home'); closeDrawer(); }} className="hover:bg-white/5 py-3">
+                                        <i className="fa-solid fa-house w-6 text-lg"></i> ホーム
+                                    </a>
+                                </li>
+                                <li>
+                                    <a onClick={() => { setView('list'); closeDrawer(); }} className="hover:bg-white/5 py-3 text-[#1DB954]">
+                                        <i className="fa-solid fa-microphone-lines w-6 text-lg"></i> アーティスト
+                                    </a>
+                                </li>
+                                <li>
+                                    <details open>
+                                        <summary className="hover:bg-white/5 py-3">
+                                            <i className="fa-solid fa-compact-disc w-6 text-lg"></i> プレイリスト
+                                        </summary>
+                                        <ul className="mt-1 ml-4 border-l border-white/10 pl-2">
+                                            <li><a onClick={() => closeDrawer()} className="hover:bg-white/5 py-3 text-sm">生成</a></li>
+                                            <li><a onClick={() => closeDrawer()} className="hover:bg-white/5 py-3 text-sm">一覧</a></li>
+                                        </ul>
+                                    </details>
+                                </li>
+                            </ul>
+
+                            {/* 下部のステータス */}
+                            <div className="mt-auto p-4 bg-[#181818] rounded-inner border border-white/5">
+                                <div className="text-[10px] font-bold text-gray-500 uppercase mb-2">Sync Status</div>
+                                <div className="flex items-center gap-2 text-xs">
+                                    <div className="w-2 h-2 bg-[#1DB954] rounded-full"></div>
+                                    <span className="font-bold">Spotify Connected</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

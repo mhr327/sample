@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unimoa - Artist Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.css" rel="stylesheet" />
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --spotify-black: #121212;
+            --spotify-dark-grey: #181818;
+            --spotify-light-grey: #282828;
+            --spotify-green: #1DB954;
+        }
+        body {
+            background-color: var(--spotify-black);
+            color: white;
+            font-family: 'Circular', 'Inter', 'Noto Sans JP', sans-serif;
+        }
+        .artist-card {
+            background: var(--spotify-dark-grey);
+            transition: all 0.3s ease;
+        }
+        .artist-card:hover {
+            background: var(--spotify-light-grey);
+            transform: translateY(-4px);
+        }
+        .btn-spotify {
+            background-color: var(--spotify-green);
+            color: black;
+            font-weight: 800;
+            border-radius: 500px;
+        }
+        .input-spotify {
+            background-color: var(--spotify-light-grey);
+            border: none;
+            color: white;
+            border-radius: 8px;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="h-screen overflow-hidden">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const ArtistLibrary = () => {
+            const [view, setView] = useState('list'); // 'list', 'detail', 'edit'
+            const [selectedArtist, setSelectedArtist] = useState(null);
+            const [artists, setArtists] = useState([
+                { 
+                    id: 1, 
+                    name: "Vaundy", 
+                    img: "https://i.scdn.co/image/ab6761610000e5eb986348ef520d73f4d6c141da",
+                    reason: "YouTubeの広告で流れてきた『東京フラッシュ』のグルーヴ感に衝撃を受けたのがきっかけ。",
+                    tags: ["天才", "マルチプレイヤー", "ライブ最高"],
+                    memo: "新曲が出るたびに音楽性が進化している。特にベースラインの作り方が好み。"
+                },
+                { 
+                    id: 2, 
+                    name: "King Gnu", 
+                    img: "https://i.scdn.co/image/ab6761610000e5eb60408f65583b28b7e748f219",
+                    reason: "アニメ『呪術廻戦』の主題歌から。緻密なオーケストレーションとロックの融合がすごい。",
+                    tags: ["トーキョー・ニュー・ミクスチャー", "圧倒的歌唱力"],
+                    memo: "常田さんのプロジェクトも含めて全部追いたい。演出がとにかく派手。"
+                }
+            ]);
+
+            // ハンドラー
+            const openDetail = (a) => { setSelectedArtist(a); setView('detail'); };
+            const openEdit = (a) => { setSelectedArtist(a || { name: '', reason: '', tags: [], memo: '', img: 'https://images.unsplash.com/photo-1514525253361-bee8a48790c3?w=400' }); setView('edit'); };
+            
+            const handleSave = (e) => {
+                e.preventDefault();
+                if (selectedArtist.id) {
+                    setArtists(artists.map(a => a.id === selectedArtist.id ? selectedArtist : a));
+                } else {
+                    setArtists([...artists, { ...selectedArtist, id: Date.now() }]);
+                }
+                setView('list');
+            };
+
+            // --- 一覧画面 ---
+            if (view === 'list') {
+                return (
+                    <div className="p-6 fade-in">
+                        <div className="flex justify-between items-center mb-8">
+                            <h2 className="text-3xl font-black">Your Artists</h2>
+                            <button onClick={() => openEdit(null)} className="btn btn-circle bg-white text-black hover:bg-gray-200 border-none">
+                                <i className="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {artists.map(a => (
+                                <div key={a.id} onClick={() => openDetail(a)} className="artist-card p-4 rounded-xl cursor-pointer">
+                                    <img src={a.img} className="w-full aspect-square rounded-full object-cover mb-4 shadow-2xl" />
+                                    <h3 className="font-bold text-center truncate">{a.name}</h3>
+                                    <div className="flex justify-center gap-1 mt-2">
+                                        {a.tags.slice(0, 1).map(t => (
+                                            <span key={t} className="text-[9px] px-2 py-0.5 bg-white/10 rounded-full text-gray-400">#{t}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            // --- 詳細画面 ---
+            if (view === 'detail') {
+                return (
+                    <div className="fade-in flex flex-col h-full">
+                        <div className="relative h-64 shrink-0">
+                            <img src={selectedArtist.img} className="w-full h-full object-cover brightness-50" />
+                            <button onClick={() => setView('list')} className="absolute top-6 left-6 btn btn-circle btn-sm bg-black/40 border-none"><i className="fa-solid fa-arrow-left"></i></button>
+                            <div className="absolute bottom-6 left-6">
+                                <h2 className="text-4xl font-black mb-2">{selectedArtist.name}</h2>
+                                <div className="flex gap-2">
+                                    {selectedArtist.tags.map(t => <span key={t} className="badge bg-[#1DB954] text-black border-none font-bold text-xs">{t}</span>)}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 space-y-8 overflow-y-auto no-scrollbar">
+                            <section>
+                                <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-3">きっかけ</h4>
+                                <p className="text-sm leading-relaxed text-gray-200">{selectedArtist.reason}</p>
+                            </section>
+                            <section>
+                                <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-3">個人メモ</h4>
+                                <div className="bg-white/5 p-4 rounded-xl border border-white/5 italic text-sm text-gray-300">
+                                    "{selectedArtist.memo}"
+                                </div>
+                            </section>
+                            <button onClick={() => openEdit(selectedArtist)} className="btn btn-spotify w-full mt-4">情報を編集する</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // --- 登録・更新画面 ---
+            if (view === 'edit') {
+                return (
+                    <div className="p-6 fade-in h-full overflow-y-auto no-scrollbar">
+                        <div className="flex justify-between items-center mb-8">
+                            <h2 className="text-2xl font-black">{selectedArtist.id ? 'Edit Artist' : 'New Artist'}</h2>
+                            <button onClick={() => setView('list')} className="text-sm font-bold text-gray-400">キャンセル</button>
+                        </div>
+                        <form onSubmit={handleSave} className="space-y-6 pb-20">
+                            <div className="form-control">
+                                <label className="label text-xs font-black text-gray-500">アーティスト名</label>
+                                <input required className="input input-spotify w-full" value={selectedArtist.name} onChange={e => setSelectedArtist({...selectedArtist, name: e.target.value})} placeholder="例: Vaundy" />
+                            </div>
+                            <div className="form-control">
+                                <label className="label text-xs font-black text-gray-500">画像URL</label>
+                                <input className="input input-spotify w-full" value={selectedArtist.img} onChange={e => setSelectedArtist({...selectedArtist, img: e.target.value})} />
+                            </div>
+                            <div className="form-control">
+                                <label className="label text-xs font-black text-gray-500">きっかけ</label>
+                                <textarea className="textarea input-spotify h-24" value={selectedArtist.reason} onChange={e => setSelectedArtist({...selectedArtist, reason: e.target.value})} placeholder="いつ、どこで知った？"></textarea>
+                            </div>
+                            <div className="form-control">
+                                <label className="label text-xs font-black text-gray-500">タグ（カンマ区切り）</label>
+                                <input className="input input-spotify w-full" value={selectedArtist.tags.join(',')} onChange={e => setSelectedArtist({...selectedArtist, tags: e.target.value.split(',')})} placeholder="天才, ライブ最高" />
+                            </div>
+                            <div className="form-control">
+                                <label className="label text-xs font-black text-gray-500">メモ</label>
+                                <textarea className="textarea input-spotify h-24" value={selectedArtist.memo} onChange={e => setSelectedArtist({...selectedArtist, memo: e.target.value})} placeholder="自分なりの推しポイント"></textarea>
+                            </div>
+                            <button type="submit" className="btn btn-spotify w-full h-14">保存する</button>
+                        </form>
+                    </div>
+                );
+            }
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('library'); // 'library', 'generate'
+            return (
+                <div className="flex flex-col h-full bg-[#121212]">
+                    <div className="flex-1 overflow-hidden">
+                        {activeTab === 'library' ? <ArtistLibrary /> : <div className="p-10 text-center">（前回の生成エンジン画面）</div>}
+                    </div>
+                    {/* Bottom Nav */}
+                    <div className="h-20 bg-black/80 backdrop-blur-md border-t border-white/5 flex items-center justify-around px-10">
+                        <button onClick={() => setActiveTab('library')} className={`flex flex-col items-center gap-1 ${activeTab === 'library' ? 'text-white' : 'text-gray-500'}`}>
+                            <i className="fa-solid fa-book-open text-xl"></i>
+                            <span className="text-[10px] font-black uppercase">Library</span>
+                        </button>
+                        <button onClick={() => setActiveTab('generate')} className={`flex flex-col items-center gap-1 ${activeTab === 'generate' ? 'text-white' : 'text-gray-500'}`}>
+                            <i className="fa-solid fa-wand-magic-sparkles text-xl"></i>
+                            <span className="text-[10px] font-black uppercase">Generate</span>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unimoa - Mobile Optimized</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.css" rel="stylesheet" />
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --spotify-black: #121212;
+            --spotify-green: #1DB954;
+            --safe-area-bottom: env(safe-area-inset-bottom);
+        }
+        body { background-color: var(--spotify-black); color: white; font-family: 'Circular', sans-serif; overflow: hidden; }
+        
+        /* スクロールエリアを最大化 */
+        .scroll-container {
+            height: calc(100vh - 64px - 70px - var(--safe-area-bottom));
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .track-row:active { background: rgba(255,255,255,0.1); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* スマホ向けにボタンを押しやすく */
+        .floating-action {
+            position: fixed;
+            right: 1.5rem;
+            bottom: calc(90px + var(--safe-area-bottom));
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const App = () => {
+            const [tracks, setTracks] = useState([
+                { id: 1, title: "怪獣の花唄", artist: "Vaundy", duration: "3:45", cover: "https://i.scdn.co/image/ab67616d0000b2737603c629562723380436d467" },
+                { id: 2, title: "SPECIALZ", artist: "King Gnu", duration: "3:58", cover: "https://i.scdn.co/image/ab67616d0000b273029193f9d443c569f29156e9" },
+                { id: 3, title: "満ちてゆく", artist: "藤井 風", duration: "4:12", cover: "https://i.scdn.co/image/ab67616d0000b27393284090543666f7f3630f9a" },
+                { id: 4, title: "アイドル", artist: "YOASOBI", duration: "3:33", cover: "https://i.scdn.co/image/ab67616d0000b273879206ad04523d45c5890782" },
+                { id: 5, title: "Subtitle", artist: "Official髭男dism", duration: "5:01", cover: "https://i.scdn.co/image/ab67616d0000b2736996656846f488219159f81d" },
+                { id: 6, title: "Bling-Bang-Bang-Born", artist: "Creepy Nuts", duration: "2:48", cover: "https://i.scdn.co/image/ab67616d0000b273f609e07297e289f899e81792" },
+                { id: 7, title: "一途", artist: "King Gnu", duration: "3:10", cover: "https://i.scdn.co/image/ab67616d0000b273b7541170757b3287019f2f84" }
+            ]);
+
+            const removeTrack = (id) => setTracks(tracks.filter(t => t.id !== id));
+
+            return (
+                <div className="flex flex-col h-screen w-full">
+                    {/* Compact Header */}
+                    <header className="h-16 flex items-center px-5 justify-between bg-gradient-to-b from-white/10 to-transparent shrink-0">
+                        <div className="flex items-center gap-2">
+                            <i className="fa-solid fa-chevron-left text-lg"></i>
+                            <div className="ml-2">
+                                <h1 className="text-sm font-black truncate w-40">My AI Playlist</h1>
+                                <p className="text-[10px] text-gray-400 font-bold">14時間前 ・ 28分</p>
+                            </div>
+                        </div>
+                        <i className="fa-solid fa-ellipsis-vertical text-gray-400"></i>
+                    </header>
+
+                    {/* Content Area */}
+                    <main className="scroll-container no-scrollbar">
+                        <div className="px-5 py-2">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex gap-4">
+                                    <button className="text-[#1DB954] text-xl"><i className="fa-solid fa-circle-down"></i></button>
+                                    <button className="text-gray-400 text-xl"><i className="fa-solid fa-user-plus"></i></button>
+                                </div>
+                                <button className="w-12 h-12 bg-[#1DB954] rounded-full flex items-center justify-center text-black text-xl shadow-lg">
+                                    <i className="fa-solid fa-play ml-1"></i>
+                                </button>
+                            </div>
+
+                            <div className="space-y-1">
+                                {tracks.map(t => (
+                                    <div key={t.id} className="track-row flex items-center py-2 h-16">
+                                        <img src={t.cover} className="w-12 h-12 rounded shrink-0 object-cover shadow-md" />
+                                        <div className="flex-1 ml-4 overflow-hidden">
+                                            <h4 className="text-sm font-bold truncate">{t.title}</h4>
+                                            <p className="text-[11px] text-gray-400 font-bold">{t.artist}</p>
+                                        </div>
+                                        <div className="flex items-center gap-4 shrink-0 ml-2">
+                                            <span className="text-[10px] font-mono text-gray-500">{t.duration}</span>
+                                            <button onClick={() => removeTrack(t.id)} className="p-2 text-gray-500">
+                                                <i className="fa-solid fa-xmark text-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            {/* 追加ボタンエリア */}
+                            <div className="mt-8 mb-12">
+                                <button className="w-full py-3 rounded-full border border-gray-700 text-xs font-black flex items-center justify-center gap-2">
+                                    <i className="fa-solid fa-plus"></i> 曲を追加する
+                                </button>
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* Bottom Nav (Height: 70px) */}
+                    <nav className="h-[70px] bg-black/95 backdrop-blur-md border-t border-white/5 flex items-center justify-around px-10 pb-[var(--safe-area-bottom)] shrink-0">
+                        <div className="flex flex-col items-center gap-1 text-gray-500">
+                            <i className="fa-solid fa-house text-lg"></i>
+                            <span className="text-[8px] font-bold">ホーム</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-1 text-white">
+                            <i className="fa-solid fa-compact-disc text-lg"></i>
+                            <span className="text-[8px] font-bold">プレイリスト</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-1 text-gray-500">
+                            <i className="fa-solid fa-magnifying-glass text-lg"></i>
+                            <span className="text-[8px] font-bold">検索</span>
+                        </div>
+                    </nav>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

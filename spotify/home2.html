@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unimoa - アーティスト管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.css" rel="stylesheet" />
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --spotify-black: #121212;
+            --spotify-dark-grey: #181818;
+            --spotify-light-grey: #282828;
+            --spotify-green: #1DB954;
+        }
+
+        body {
+            background-color: var(--spotify-black);
+            color: white;
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .rounded-main {
+            border-radius: 12px;
+        }
+
+        .rounded-inner {
+            border-radius: 8px;
+        }
+
+        .btn-spotify {
+            background-color: var(--spotify-green);
+            color: black;
+            font-weight: 800;
+            border-radius: 500px;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-spotify:hover {
+            background-color: #1ed760;
+        }
+
+        .card-flat {
+            background: #181818;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* スクロールバーのカスタマイズ */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="h-screen overflow-hidden">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const App = () => {
+            const [view, setView] = useState('home');
+
+            const artists = [
+                { id: "1", name: "Vaundy", nameEn: "Vaundy", img: "https://images.unsplash.com/photo-1514525253361-bee8a48790c3?w=400&h=400&fit=crop", tags: ["チル", "作業用"] },
+                { id: "2", name: "藤井 風", nameEn: "Fujii Kaze", img: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=400&h=400&fit=crop", tags: ["エモい"] },
+                { id: "3", name: "YOASOBI", nameEn: "YOASOBI", img: "https://images.unsplash.com/photo-1459749411177-042180ceea72?w=400&h=400&fit=crop", tags: ["夜に聴きたい"] },
+                { id: "4", name: "Official髭男dism", nameEn: "Official HIGE DANdism", img: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop", tags: ["邦ロック"] }
+            ];
+
+            const closeDrawer = () => {
+                document.getElementById('my-drawer').checked = false;
+            };
+
+            return (
+                <div className="drawer h-full">
+                    <input id="my-drawer" type="checkbox" className="drawer-toggle" />
+
+                    <div className="drawer-content flex flex-col h-screen overflow-hidden">
+                        {/* --- ヘッダー --- */}
+                        <header className="flex-none px-6 py-2 flex items-center justify-between border-b border-white/5 bg-black/60 backdrop-blur-md z-40">
+                            <div className="flex items-center gap-4">
+                                <label htmlFor="my-drawer" className="btn btn-ghost btn-circle text-white">
+                                    <i className="fa-solid fa-bars text-xl"></i>
+                                </label>
+                                <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
+                                    <i className="fa-brands fa-spotify text-2xl text-[#1DB954]"></i>
+                                    <span className="font-black tracking-tighter text-lg uppercase">Unimoa</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <div className="dropdown dropdown-end">
+                                    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle text-gray-400">
+                                        <div className="indicator">
+                                            <i className="fa-regular fa-bell text-lg"></i>
+                                            <span className="badge badge-xs badge-primary indicator-item border-none bg-[#1DB954]"></span>
+                                        </div>
+                                    </div>
+                                    <div tabIndex={0} className="mt-3 z-[1] card card-compact dropdown-content w-64 bg-[#282828] shadow-2xl border border-white/10">
+                                        <div className="card-body">
+                                            <h3 className="font-bold text-sm border-b border-white/5 pb-2">お知らせ</h3>
+                                            <p className="text-xs text-gray-400 py-2">通知はありません</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="dropdown dropdown-end">
+                                    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
+                                        <div className="w-8 rounded-full bg-[#333] border border-white/10 flex items-center justify-center">
+                                            <span className="text-[10px] font-bold">管理</span>
+                                        </div>
+                                    </div>
+                                    <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow-2xl menu menu-sm dropdown-content bg-[#282828] border border-white/10 rounded-main w-52">
+                                        <li><a>プロフィール</a></li>
+                                        <li><a>設定</a></li>
+                                        <div className="divider my-1 opacity-20"></div>
+                                        <li><a className="text-red-400">ログアウト</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </header>
+
+                        {/* --- スクロール可能なメインコンテンツ --- */}
+                        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+                            <div className="w-full px-6 py-8 max-w-[1400px] mx-auto">
+
+                                {view === 'home' && (
+                                    <div className="space-y-10">
+                                        {/* メイン挨拶 */}
+                                        <section>
+                                            <h1 className="text-3xl font-black mb-1 tracking-tight">ホーム</h1>
+                                            <p className="text-gray-500 text-sm">ライブラリの概要と最近のアクティビティ</p>
+                                        </section>
+
+                                        {/* 統計：シンプルでフラットに */}
+                                        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                            {[
+                                                { label: "登録済みアーティスト", val: "128", icon: "fa-microphone" },
+                                                { label: "作成プレイリスト", val: "12", icon: "fa-list-ul" },
+                                                { label: "未整理", val: "5", icon: "fa-circle-exclamation" }
+                                            ].map((stat, i) => (
+                                                <div key={i} className="card-flat p-5 rounded-main">
+                                                    <div className="text-gray-500 mb-2"><i className={`fa-solid ${stat.icon} text-sm`}></i></div>
+                                                    <div className="text-2xl font-black">{stat.val}</div>
+                                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{stat.label}</div>
+                                                </div>
+                                            ))}
+                                        </section>
+
+                                        {/* コンテンツエリア */}
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                            {/* 最近の追加 */}
+                                            <div className="lg:col-span-2 space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="font-bold text-lg">最近追加したアーティスト</h3>
+                                                    <button onClick={() => setView('list')} className="text-xs text-[#1DB954] font-bold hover:underline">すべて見る</button>
+                                                </div>
+                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                                    {artists.map(a => (
+                                                        <div key={a.id} className="card-flat p-3 rounded-main group cursor-pointer transition-colors hover:bg-[#222]">
+                                                            <div className="aspect-square mb-3 overflow-hidden rounded-inner shadow-lg">
+                                                                <img src={a.img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                                            </div>
+                                                            <div className="font-bold text-sm truncate">{a.name}</div>
+                                                            <div className="text-[10px] text-gray-500 truncate mb-2">{a.nameEn}</div>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {a.tags.map(t => <span key={t} className="text-[8px] bg-white/5 px-1.5 py-0.5 rounded text-gray-400">#{t}</span>)}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* クイックツール */}
+                                            <div className="space-y-4">
+                                                <h3 className="font-bold text-lg">クイックアクセス</h3>
+                                                <div className="space-y-2">
+                                                    <button className="w-full bg-[#181818] hover:bg-[#252525] p-4 rounded-main flex items-center gap-4 transition-all border border-white/5">
+                                                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-[#1DB954]">
+                                                            <i className="fa-solid fa-plus"></i>
+                                                        </div>
+                                                        <div className="text-left">
+                                                            <div className="font-bold text-sm">アーティスト登録</div>
+                                                            <div className="text-[10px] text-gray-500">Spotifyから新規追加</div>
+                                                        </div>
+                                                    </button>
+                                                    <button className="w-full bg-[#181818] hover:bg-[#252525] p-4 rounded-main flex items-center gap-4 transition-all border border-white/5">
+                                                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-blue-400">
+                                                            <i className="fa-solid fa-wand-magic-sparkles"></i>
+                                                        </div>
+                                                        <div className="text-left">
+                                                            <div className="font-bold text-sm">プレイリスト作成</div>
+                                                            <div className="text-[10px] text-gray-500">条件を指定して自動生成</div>
+                                                        </div>
+                                                    </button>
+                                                </div>
+
+                                                <div className="mt-8 p-5 bg-[#181818] rounded-main border border-white/5">
+                                                    <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">ヒント</h4>
+                                                    <p className="text-xs text-gray-400 leading-relaxed font-medium">
+                                                        「邦ロック」「夜に聴きたい」などのタグを複数付けることで、より精度の高いプレイリストが作成できます。
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {view === 'list' && (
+                                    <div className="space-y-8">
+                                        <div className="flex items-center justify-between">
+                                            <h2 className="text-3xl font-black">アーティスト一覧</h2>
+                                            <button className="btn-spotify btn btn-sm px-6">追加</button>
+                                        </div>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-6">
+                                            {artists.concat(artists).map((a, idx) => (
+                                                <div key={idx} className="card-flat rounded-main p-4 cursor-pointer group hover:bg-[#222] transition-colors">
+                                                    <div className="aspect-square mb-4 overflow-hidden rounded-inner shadow-xl">
+                                                        <img src={a.img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                    </div>
+                                                    <h3 className="font-bold text-sm truncate">{a.name}</h3>
+                                                    <p className="text-[10px] text-gray-500 truncate">{a.nameEn}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    </div>
+
+                    {/* --- サイドバー --- */}
+                    <div className="drawer-side z-50">
+                        <label htmlFor="my-drawer" className="drawer-overlay"></label>
+                        <div className="menu p-4 w-64 min-h-full bg-[#121212] border-r border-white/5">
+                            <div className="flex items-center gap-2 px-4 py-6 mb-4 border-b border-white/5">
+                                <i className="fa-brands fa-spotify text-2xl text-[#1DB954]"></i>
+                                <span className="text-xl font-black tracking-tighter text-white uppercase">Menu</span>
+                            </div>
+
+                            <ul className="space-y-1 font-bold text-sm text-gray-300">
+                                <li>
+                                    <a onClick={() => { setView('home'); closeDrawer(); }} className={`py-4 ${view === 'home' ? 'text-[#1DB954] bg-white/5' : ''}`}>
+                                        <i className="fa-solid fa-house w-6"></i> ホーム
+                                    </a>
+                                </li>
+                                <li>
+                                    <a onClick={() => { setView('list'); closeDrawer(); }} className={`py-4 ${view === 'list' ? 'text-[#1DB954] bg-white/5' : ''}`}>
+                                        <i className="fa-solid fa-microphone-lines w-6"></i> アーティスト
+                                    </a>
+                                </li>
+                                <li>
+                                    <details open>
+                                        <summary className="py-4">
+                                            <i className="fa-solid fa-compact-disc w-6"></i> プレイリスト
+                                        </summary>
+                                        <ul className="ml-4 border-l border-white/10 pl-2 mt-1">
+                                            <li><a onClick={closeDrawer} className="py-2 text-xs">新規生成</a></li>
+                                            <li><a onClick={closeDrawer} className="py-2 text-xs">保存済み一覧</a></li>
+                                        </ul>
+                                    </details>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

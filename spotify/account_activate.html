@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unimoa - Verify Email</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --spotify-black: #121212;
+            --spotify-green: #1DB954;
+        }
+        body {
+            background-color: var(--spotify-black);
+            color: white;
+            font-family: 'Circular', 'Inter', 'Noto Sans JP', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .btn-spotify {
+            background-color: var(--spotify-green);
+            color: black;
+            font-weight: 800;
+            border-radius: 500px;
+            transition: all 0.2s;
+        }
+        .btn-spotify:hover { transform: scale(1.04); background-color: #1ed760; }
+        
+        .fade-up { animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="h-screen overflow-hidden">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const App = () => {
+            const [view, setView] = useState('login'); // login, signup, verify, app
+
+            // 1. ログイン画面 (省略・統合)
+            if (view === 'login') {
+                return (
+                    <div className="h-full overflow-y-auto no-scrollbar bg-gradient-to-b from-[#1a1a1a] to-[#121212]">
+                        <div className="min-h-full flex flex-col items-center px-8 pt-10 pb-12 fade-up">
+                            <div className="mb-8"><i className="fa-solid fa-compact-disc text-6xl text-[#1DB954]"></i></div>
+                            <h1 className="text-3xl font-black text-center mb-10 tracking-tighter">音をデザインする。<br/>今すぐログイン。</h1>
+                            <div className="w-full max-w-[400px] space-y-6">
+                                <button onClick={() => setView('app')} className="btn-spotify w-full h-14 uppercase tracking-widest text-sm">ログイン</button>
+                                <p className="text-center text-sm font-black text-gray-400">アカウントをお持ちでないですか？ <br/>
+                                <span onClick={() => setView('signup')} className="text-white underline cursor-pointer hover:text-[#1ed760]">今すぐ無料で登録</span></p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // 2. 新規登録画面 (送信ボタンで verify へ)
+            if (view === 'signup') {
+                return (
+                    <div className="h-full overflow-y-auto no-scrollbar bg-gradient-to-b from-[#1a1a1a] to-[#121212]">
+                        <div className="min-h-full flex flex-col items-center px-8 pt-10 pb-12 fade-up">
+                            <div className="mb-8"><i className="fa-solid fa-compact-disc text-6xl text-[#1DB954]"></i></div>
+                            <h1 className="text-3xl font-black text-center mb-10 tracking-tighter">サインアップして<br/>構築を開始しよう。</h1>
+                            <div className="w-full max-w-[400px] space-y-6">
+                                <form onSubmit={(e) => {e.preventDefault(); setView('verify')}} className="space-y-5">
+                                    <input type="email" required className="bg-[#242424] w-full h-14 px-5 rounded-md outline-none focus:ring-1 ring-white" placeholder="メールアドレス" />
+                                    <input type="password" required className="bg-[#242424] w-full h-14 px-5 rounded-md outline-none focus:ring-1 ring-white" placeholder="パスワード" />
+                                    <button type="submit" className="btn-spotify w-full h-14 mt-4 uppercase tracking-widest text-sm">次へ</button>
+                                </form>
+                                <p className="text-center text-sm font-black text-gray-400">すでにアカウントをお持ちですか？ <br/>
+                                <span onClick={() => setView('login')} className="text-white underline cursor-pointer hover:text-[#1ed760]">ログイン画面へ</span></p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // 3. メール送信完了画面 (今回の追加分)
+            if (view === 'verify') {
+                return (
+                    <div className="h-full flex flex-col bg-[#121212]">
+                        <div className="flex-1 flex flex-col items-center justify-center px-8 fade-up text-center">
+                            {/* 紙飛行機アイコン（Spotifyグリーン） */}
+                            <div className="w-24 h-24 bg-[#1DB954]/10 rounded-full flex items-center justify-center mb-8 border border-[#1DB954]/20">
+                                <i className="fa-solid fa-paper-plane text-4xl text-[#1DB954]"></i>
+                            </div>
+
+                            <h1 className="text-3xl font-black mb-4 tracking-tighter">メールを確認してください</h1>
+                            
+                            <p className="text-gray-400 font-bold leading-relaxed mb-8 max-w-[320px]">
+                                アカウントを有効化するためのリンクをメールで送信しました。記載されたリンクをクリックして、Unimoaを開始してください。
+                            </p>
+
+                            <div className="w-full max-w-[320px] space-y-4">
+                                <button onClick={() => setView('app')} className="btn-spotify w-full h-14 text-sm uppercase tracking-widest">
+                                    メールアプリを開く
+                                </button>
+                                
+                                <button className="w-full py-2 text-sm font-black text-gray-500 hover:text-white transition-colors">
+                                    メールが届かない場合はこちら
+                                </button>
+                            </div>
+
+                            <div className="mt-12 pt-8 border-t border-white/5 w-full max-w-[320px]">
+                                <p onClick={() => setView('signup')} className="text-xs font-black text-gray-500 uppercase tracking-widest cursor-pointer hover:text-white">
+                                    <i className="fa-solid fa-arrow-left mr-2"></i> 登録内容を修正する
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // 4. メインアプリ画面 (ログイン後)
+            return (
+                <div className="flex flex-col h-screen bg-[#121212]">
+                    <header className="px-6 py-6 flex items-center justify-between border-b border-white/5">
+                        <div className="flex items-center gap-3">
+                            <i className="fa-solid fa-compact-disc text-2xl text-[#1DB954]"></i>
+                            <span className="font-black tracking-tighter text-xl">UNIMOA</span>
+                        </div>
+                        <div onClick={() => setView('login')} className="w-10 h-10 rounded-full bg-[#282828] flex items-center justify-center cursor-pointer">
+                            <i className="fa-solid fa-user text-xs"></i>
+                        </div>
+                    </header>
+                    <main className="flex-1 flex flex-col items-center justify-center text-center p-8">
+                        <h2 className="text-4xl font-black italic mb-4">Welcome back.</h2>
+                        <p className="text-gray-500 font-bold">ログインに成功しました。</p>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

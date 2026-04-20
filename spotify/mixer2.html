@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unimoa - Premium Playlist Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.css" rel="stylesheet" />
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --spotify-black: #121212;
+            --spotify-dark-grey: #181818;
+            --spotify-light-grey: #282828;
+            --spotify-green: #1DB954;
+        }
+        body {
+            background-color: var(--spotify-black);
+            color: white;
+            font-family: 'Circular', 'Inter', 'Noto Sans JP', sans-serif;
+        }
+        .btn-spotify {
+            background-color: var(--spotify-green);
+            color: black;
+            font-weight: 800;
+            border-radius: 500px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-spotify:hover {
+            background-color: #1ed760;
+            transform: scale(1.04);
+        }
+        .artist-chip {
+            background: var(--spotify-light-grey);
+            transition: all 0.2s;
+        }
+        .artist-chip.selected {
+            background: var(--spotify-green);
+            color: black;
+        }
+        .track-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* アニメーション */
+        .fade-up { animation: fadeUp 0.5s ease-out forwards; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 修正したシンプルなドット */
+        .step-dots {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dot-active {
+            background-color: var(--spotify-green);
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body class="h-screen overflow-hidden">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const App = () => {
+            const [step, setStep] = useState(1);
+            const [selectedArtists, setSelectedArtists] = useState([]);
+            const [searchQuery, setSearchQuery] = useState("");
+            const [suggestions, setSuggestions] = useState([]);
+            const [loading, setLoading] = useState(false);
+            
+            const [config, setConfig] = useState({
+                mode: 'popular',
+                count: 5,
+                energy: 70,
+                valence: 40
+            });
+
+            const [generatedTracks, setGeneratedTracks] = useState([]);
+
+            const artistDB = [
+                { id: "v1", name: "Vaundy", img: "https://i.scdn.co/image/ab6761610000e5eb986348ef520d73f4d6c141da" },
+                { id: "k1", name: "King Gnu", img: "https://i.scdn.co/image/ab6761610000e5eb60408f65583b28b7e748f219" },
+                { id: "f1", name: "藤井 風", img: "https://i.scdn.co/image/ab6761610000e5eb56070629983949f50682245b" },
+                { id: "y1", name: "YOASOBI", img: "https://i.scdn.co/image/ab6761610000e5eb2913e2f5c225091a9f14309b" },
+                { id: "h1", name: "Official髭男dism", img: "https://i.scdn.co/image/ab6761610000e5eb6996656846f488219159f81d" },
+                { id: "m1", name: "Mrs. GREEN APPLE", img: "https://i.scdn.co/image/ab6761610000e5eb0969623d6a3f9540b07e5968" }
+            ];
+
+            useEffect(() => {
+                if (searchQuery.length > 0) {
+                    const filtered = artistDB.filter(a => 
+                        a.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+                        !selectedArtists.find(s => s.id === a.id)
+                    );
+                    setSuggestions(filtered);
+                } else {
+                    setSuggestions([]);
+                }
+            }, [searchQuery]);
+
+            const toggleArtist = (a) => {
+                if (selectedArtists.find(item => item.id === a.id)) {
+                    setSelectedArtists(selectedArtists.filter(item => item.id !== a.id));
+                } else {
+                    setSelectedArtists([...selectedArtists, a]);
+                    setSearchQuery("");
+                }
+            };
+
+            const handleGenerate = () => {
+                setLoading(true);
+                setTimeout(() => {
+                    const tracks = [
+                        { id: 1, title: "怪獣の花唄", artist: "Vaundy", album: "replica", time: "3:45" },
+                        { id: 2, title: "SPECIALZ", artist: "King Gnu", album: "THE GREATEST UNKNOWN", time: "3:58" },
+                        { id: 3, title: "アイドル", artist: "YOASOBI", album: "THE BOOK 3", time: "3:33" },
+                        { id: 4, title: "満ちてゆく", artist: "藤井 風", album: "満ちてゆく", time: "4:12" },
+                        { id: 5, title: "Subtitle", artist: "Official髭男dism", album: "Subtitle", time: "5:02" },
+                    ];
+                    setGeneratedTracks(tracks);
+                    setLoading(false);
+                    setStep(3);
+                }, 1500);
+            };
+
+            return (
+                <div className="flex flex-col h-full bg-[#121212]">
+                    <header className="px-6 py-4 flex items-center justify-between border-b border-white/5">
+                        <div className="flex items-center gap-2">
+                            <i className="fa-brands fa-spotify text-2xl text-[#1DB954]"></i>
+                            <span className="font-black tracking-tighter text-lg">UNIMOA ENGINE</span>
+                        </div>
+                        <div className="w-[80px]"></div>
+                    </header>
+
+                    <main className="flex-1 overflow-y-auto no-scrollbar pb-32">
+                        <div className="max-w-3xl mx-auto px-6 py-8">
+                            
+                            {/* 中央ドットのみ */}
+                            <div className="step-dots">
+                                {[1, 2, 3].map(s => (
+                                    <div key={s} className={`dot ${step === s ? 'dot-active' : ''}`}></div>
+                                ))}
+                            </div>
+
+                            {/* STEP 1 */}
+                            {step === 1 && (
+                                <div className="fade-up">
+                                    <h2 className="text-4xl font-black mb-2">Seeds</h2>
+                                    <p className="text-gray-400 font-bold mb-8">ベースとなるアーティストを選択または検索</p>
+                                    
+                                    <div className="relative mb-8">
+                                        <i className="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                        <input 
+                                            type="text" 
+                                            className="w-full h-14 bg-[#282828] rounded-xl pl-14 pr-6 font-bold focus:ring-2 ring-[#1DB954] outline-none transition-all"
+                                            placeholder="アーティスト名を入力..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                        {suggestions.length > 0 && (
+                                            <div className="absolute top-full left-0 w-full bg-[#282828] mt-2 rounded-xl shadow-2xl z-50 overflow-hidden border border-white/10">
+                                                {suggestions.map(a => (
+                                                    <div key={a.id} onClick={() => toggleArtist(a)} className="flex items-center gap-4 p-4 hover:bg-white/10 cursor-pointer transition-colors">
+                                                        <img src={a.img} className="w-10 h-10 rounded-full object-cover" alt={a.name} />
+                                                        <span className="font-bold">{a.name}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">Selected Artists</h3>
+                                    <div className="flex flex-wrap gap-3 mb-12">
+                                        {selectedArtists.map(a => (
+                                            <div key={a.id} onClick={() => toggleArtist(a)} className="artist-chip selected px-4 py-2 rounded-full flex items-center gap-2 cursor-pointer font-bold text-sm">
+                                                {a.name} <i className="fa-solid fa-xmark text-xs opacity-50"></i>
+                                            </div>
+                                        ))}
+                                        {selectedArtists.length === 0 && <p className="text-sm text-gray-600 italic">アーティストが選択されていません</p>}
+                                    </div>
+
+                                    <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">Suggestions for you</h3>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                        {artistDB.slice(0, 6).map(a => (
+                                            <div key={a.id} onClick={() => toggleArtist(a)} className={`p-4 rounded-xl flex items-center gap-3 cursor-pointer transition-all ${selectedArtists.find(s => s.id === a.id) ? 'bg-[#1DB954]/20 border border-[#1DB954]' : 'bg-[#181818] border border-transparent hover:bg-[#282828]'}`}>
+                                                <img src={a.img} className="w-12 h-12 rounded-full object-cover shadow-lg" alt={a.name} />
+                                                <span className="font-bold text-sm">{a.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="fixed bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black via-black/90 to-transparent">
+                                        <button 
+                                            disabled={selectedArtists.length === 0}
+                                            onClick={() => setStep(2)}
+                                            className="btn-spotify w-full max-w-lg mx-auto block h-14 text-base"
+                                        >
+                                            生成オプションへ進む
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* STEP 2 */}
+                            {step === 2 && (
+                                <div className="fade-up">
+                                    <button onClick={() => setStep(1)} className="mb-6 text-sm font-bold text-gray-500 hover:text-white transition-colors">
+                                        <i className="fa-solid fa-arrow-left mr-2"></i> アーティスト選択に戻る
+                                    </button>
+                                    <h2 className="text-4xl font-black mb-8">Configure</h2>
+
+                                    <div className="space-y-6">
+                                        <div className="bg-[#181818] rounded-2xl p-2 flex gap-1">
+                                            {[
+                                                {id: 'popular', label: '人気順', icon: 'fa-fire'},
+                                                {id: 'setlist', label: 'セトリ順', icon: 'fa-list-ul'},
+                                                {id: 'mood', label: 'ムード', icon: 'fa-sliders'}
+                                            ].map(m => (
+                                                <button 
+                                                    key={m.id}
+                                                    onClick={() => setConfig({...config, mode: m.id})}
+                                                    className={`flex-1 py-3 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all ${config.mode === m.id ? 'bg-[#282828] text-[#1DB954] shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                                                >
+                                                    <i className={`fa-solid ${m.icon}`}></i> {m.label}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        <div className="bg-[#181818] rounded-2xl p-8 space-y-10">
+                                            {(config.mode === 'popular' || config.mode === 'setlist') && (
+                                                <div className="fade-up">
+                                                    <div className="flex justify-between items-end mb-4">
+                                                        <label className="text-xs font-black text-gray-500 uppercase tracking-widest">取得曲数 (1アーティストあたり)</label>
+                                                        <span className="text-2xl font-black text-[#1DB954]">{config.count} <span className="text-xs">tracks</span></span>
+                                                    </div>
+                                                    <input type="range" min="1" max="20" value={config.count} onChange={(e) => setConfig({...config, count: e.target.value})} className="range range-xs range-success opacity-80" />
+                                                </div>
+                                            )}
+
+                                            {config.mode === 'mood' && (
+                                                <div className="space-y-10 fade-up">
+                                                    <div>
+                                                        <div className="flex justify-between mb-4">
+                                                            <span className="text-sm font-bold">エネルギー (激しさ)</span>
+                                                            <span className="text-sm font-bold text-[#1DB954]">{config.energy}%</span>
+                                                        </div>
+                                                        <input type="range" className="range range-xs range-success" value={config.energy} onChange={e => setConfig({...config, energy: e.target.value})} />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex justify-between mb-4">
+                                                            <span className="text-sm font-bold">バレンス (明るさ)</span>
+                                                            <span className="text-sm font-bold text-[#1DB954]">{config.valence}%</span>
+                                                        </div>
+                                                        <input type="range" className="range range-xs range-success" value={config.valence} onChange={e => setConfig({...config, valence: e.target.value})} />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-12">
+                                        <button 
+                                            onClick={handleGenerate}
+                                            className={`btn-spotify w-full h-16 text-lg ${loading ? 'opacity-50 pointer-events-none' : ''}`}
+                                        >
+                                            {loading ? <span className="loading loading-spinner"></span> : 'プレイリストを構築する'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* STEP 3 */}
+                            {step === 3 && (
+                                <div className="fade-up pb-20">
+                                    <div className="flex flex-col items-center mb-10">
+                                        <div className="w-48 h-48 bg-[#282828] shadow-2xl rounded-lg overflow-hidden border border-white/5 mb-6 relative group">
+                                            <div className="grid grid-cols-2 h-full">
+                                                {selectedArtists.slice(0, 4).map((a, i) => (
+                                                    <img key={i} src={a.img} className="w-full h-full object-cover" alt={a.name} />
+                                                ))}
+                                            </div>
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <i className="fa-solid fa-play text-5xl text-white"></i>
+                                            </div>
+                                        </div>
+                                        <h2 className="text-3xl font-black mb-1">Custom Mix for You</h2>
+                                        <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">Generated by Unimoa Engine</p>
+                                    </div>
+
+                                    <div className="bg-[#181818] rounded-2xl overflow-hidden mb-8 border border-white/5">
+                                        <div className="p-6 border-b border-white/5 flex justify-between items-center">
+                                            <h3 className="font-black">Playlist Content</h3>
+                                            <span className="text-xs font-bold text-gray-500">{generatedTracks.length} Songs</span>
+                                        </div>
+                                        <div className="divide-y divide-white/5">
+                                            {generatedTracks.map((track, i) => (
+                                                <div key={track.id} className="track-item flex items-center gap-4 p-4 transition-colors">
+                                                    <span className="w-4 text-xs font-bold text-gray-500 text-center">{i + 1}</span>
+                                                    <div className="flex-1">
+                                                        <h4 className="font-bold text-sm">{track.title}</h4>
+                                                        <p className="text-xs text-gray-400">{track.artist} • {track.album}</p>
+                                                    </div>
+                                                    <span className="text-xs text-gray-500 font-mono">{track.time}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <button 
+                                            className="btn-spotify h-14"
+                                            onClick={() => window.open('http://googleusercontent.com/spotify.com/6', '_blank')}
+                                        >
+                                            <i className="fa-brands fa-spotify text-xl mr-2"></i> Spotifyアプリで開く
+                                        </button>
+                                        <button 
+                                            onClick={() => setStep(1)}
+                                            className="h-14 bg-[#282828] hover:bg-[#333] text-white rounded-full font-bold transition-all"
+                                        >
+                                            最初からやり直す
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

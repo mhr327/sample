@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unimoa - Artist Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.css" rel="stylesheet" />
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --spotify-black: #121212;
+            --spotify-dark-grey: #181818;
+            --spotify-light-grey: #282828;
+            --spotify-green: #1DB954;
+        }
+
+        body {
+            background-color: var(--spotify-black);
+            color: white;
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+
+        /* 統一感のある角丸 */
+        .rounded-main {
+            border-radius: 16px;
+        }
+
+        .rounded-inner {
+            border-radius: 12px;
+        }
+
+        .btn-spotify {
+            background-color: var(--spotify-green);
+            color: black;
+            font-weight: 800;
+            border-radius: 500px;
+            transition: all 0.2s;
+        }
+
+        .btn-spotify:hover {
+            background-color: #1ed760;
+            transform: scale(1.02);
+        }
+
+        .card-artist {
+            background: #181818;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .card-artist:hover {
+            background: #242424;
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="h-screen overflow-hidden">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const TRIGGER_OPTIONS = ["SNSで話題", "フェスで見た", "友人のおすすめ", "Spotifyレコメンド", "タイアップ曲"];
+        const TAG_OPTIONS = ["チル", "ハイテンション", "作業用", "夜に聴きたい", "エモい", "邦ロック", "歌い手"];
+
+        const App = () => {
+            const [view, setView] = useState('list');
+            const [artists, setArtists] = useState([
+                {
+                    spotifyId: "1", name: "Vaundy", nameEn: "Vaundy",
+                    img: "https://images.unsplash.com/photo-1514525253361-bee8a48790c3?w=400&h=400&fit=crop",
+                    genre: "J-Pop, Rock", trigger: "SNSで話題", tags: ["チル", "作業用"]
+                },
+                {
+                    spotifyId: "2", name: "藤井 風", nameEn: "Fujii Kaze",
+                    img: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=400&h=400&fit=crop",
+                    genre: "J-Pop, Soul", trigger: "Spotifyレコメンド", tags: ["エモい", "夜に聴きたい"]
+                }
+            ]);
+
+            const [selectedArtist, setSelectedArtist] = useState(null);
+            const [searchQuery, setSearchQuery] = useState("");
+            const [searchSuggestions, setSearchSuggestions] = useState([]);
+            const [formData, setFormData] = useState({
+                spotifyId: '', name: '', nameEn: '', img: '', genre: '', trigger: '', tags: []
+            });
+
+            useEffect(() => {
+                if (searchQuery.length > 1) {
+                    const mockResults = [
+                        { id: 's1', name: searchQuery, nameEn: 'Artist English', img: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop', genre: 'Pop' },
+                        { id: 's2', name: searchQuery + " (Official)", nameEn: 'Artist Official', img: 'https://images.unsplash.com/photo-1459749411177-042180ceea72?w=400&h=400&fit=crop', genre: 'Rock' }
+                    ];
+                    setSearchSuggestions(mockResults);
+                } else {
+                    setSearchSuggestions([]);
+                }
+            }, [searchQuery]);
+
+            const handleSelectFromSpotify = (item) => {
+                setFormData({ ...formData, spotifyId: item.id, name: item.name, nameEn: item.nameEn, img: item.img, genre: item.genre });
+                setSearchQuery("");
+                setSearchSuggestions([]);
+            };
+
+            const toggleTag = (tag) => {
+                const newTags = formData.tags.includes(tag) ? formData.tags.filter(t => t !== tag) : [...formData.tags, tag];
+                setFormData({ ...formData, tags: newTags });
+            };
+
+            return (
+                <div className="flex flex-col h-full bg-[#121212]">
+                    {/* Header: スリム化し、ボタンとタイトルを最適化 */}
+                    <header className="px-6 py-3 flex items-center justify-between border-b border-white/5 bg-black/40 backdrop-blur-md sticky top-0 z-50">
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('list')}>
+                            <i className="fa-brands fa-spotify text-2xl text-[#1DB954]"></i>
+                            <span className="font-black tracking-tighter text-lg hidden xs:block">UNIMOA ARTISTS</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <i className="fa-regular fa-bell text-gray-400 cursor-pointer hover:text-white"></i>
+                            <div className="w-8 h-8 rounded-full bg-[#282828] border border-white/10 flex items-center justify-center font-bold text-xs cursor-pointer">U</div>
+                        </div>
+                    </header>
+
+                    <main className="flex-1 overflow-y-auto no-scrollbar">
+                        <div className="max-w-5xl mx-auto px-6 py-8">
+
+                            {/* LIST VIEW */}
+                            {view === 'list' && (
+                                <div className="fade-in">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <h2 className="text-3xl font-black">Library</h2>
+                                        <button onClick={() => setView('add')} className="btn-spotify px-6 py-2 text-sm flex items-center gap-2 shadow-lg">
+                                            <i className="fa-solid fa-plus"></i> 追加
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                        {artists.map((a, idx) => (
+                                            <div key={idx} onClick={() => { setSelectedArtist(a); setView('detail'); }}
+                                                className="card-artist rounded-main p-4 cursor-pointer group flex flex-col">
+                                                <div className="aspect-square mb-4 overflow-hidden rounded-inner shadow-xl">
+                                                    <img src={a.img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                </div>
+                                                <h3 className="font-bold text-base truncate">{a.name}</h3>
+                                                <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-3 truncate">{a.nameEn}</p>
+                                                <div className="flex flex-wrap gap-1 mt-auto">
+                                                    {a.tags.map(t => (
+                                                        <span key={t} className="text-[9px] bg-white/5 border border-white/5 px-2 py-0.5 rounded-inner text-gray-400">#{t}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* ADD VIEW (Registration) */}
+                            {view === 'add' && (
+                                <div className="fade-in max-w-xl mx-auto">
+                                    <button onClick={() => setView('list')} className="mb-6 text-sm font-bold text-gray-500 hover:text-white flex items-center">
+                                        <i className="fa-solid fa-arrow-left mr-2"></i> 戻る
+                                    </button>
+                                    <h2 className="text-3xl font-black mb-8">Registration</h2>
+                                    <div className="space-y-8">
+                                        <div className="relative">
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Spotify Search</label>
+                                            <div className="relative">
+                                                <i className="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                                                <input
+                                                    type="text"
+                                                    className="w-full h-12 bg-[#282828] rounded-inner pl-12 pr-4 text-sm font-bold focus:ring-2 ring-[#1DB954] outline-none"
+                                                    placeholder="アーティストを検索..."
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                />
+                                            </div>
+                                            {searchSuggestions.length > 0 && (
+                                                <div className="absolute top-full left-0 w-full bg-[#282828] mt-2 rounded-inner shadow-2xl z-50 overflow-hidden border border-white/10">
+                                                    {searchSuggestions.map(s => (
+                                                        <div key={s.id} onClick={() => handleSelectFromSpotify(s)} className="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0">
+                                                            <img src={s.img} className="w-10 h-10 rounded-inner object-cover" />
+                                                            <span className="text-sm font-bold">{s.name}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {formData.name && (
+                                            <div className="bg-[#181818] p-6 rounded-main border border-[#1DB954]/20 space-y-6 fade-in shadow-2xl">
+                                                <div className="flex items-center gap-4">
+                                                    <img src={formData.img} className="w-16 h-16 rounded-inner object-cover" />
+                                                    <div className="font-black text-xl">{formData.name}</div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-black text-gray-500">英語表記</label>
+                                                        <input type="text" value={formData.nameEn} onChange={e => setFormData({ ...formData, nameEn: e.target.value })} className="w-full bg-[#282828] rounded-lg p-2 text-sm outline-none" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-black text-gray-500">ジャンル</label>
+                                                        <input type="text" value={formData.genre} onChange={e => setFormData({ ...formData, genre: e.target.value })} className="w-full bg-[#282828] rounded-lg p-2 text-sm outline-none" />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase">きっかけ</label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {TRIGGER_OPTIONS.map(opt => (
+                                                            <button key={opt} onClick={() => setFormData({ ...formData, trigger: opt })}
+                                                                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${formData.trigger === opt ? 'bg-[#1DB954] text-black' : 'bg-[#282828] text-gray-400 hover:bg-[#333]'}`}>
+                                                                {opt}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase">タグ</label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {TAG_OPTIONS.map(tag => (
+                                                            <button key={tag} onClick={() => toggleTag(tag)}
+                                                                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${formData.tags.includes(tag) ? 'bg-white text-black' : 'bg-[#282828] text-gray-400 hover:bg-[#333]'}`}>
+                                                                {tag}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => { setArtists([...artists, formData]); setView('list'); }} className="btn-spotify w-full py-4 text-sm font-black">
+                                                    保存する
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* DETAIL VIEW */}
+                            {view === 'detail' && selectedArtist && (
+                                <div className="fade-in max-w-4xl mx-auto">
+                                    <button onClick={() => setView('list')} className="mb-8 text-sm font-bold text-gray-500 hover:text-white flex items-center">
+                                        <i className="fa-solid fa-arrow-left mr-2"></i> ライブラリに戻る
+                                    </button>
+
+                                    <div className="bg-[#181818] rounded-main p-8 md:p-10 border border-white/5 flex flex-col md:flex-row gap-10">
+                                        <div className="w-48 h-48 md:w-64 md:h-64 shrink-0 mx-auto">
+                                            <img src={selectedArtist.img} className="w-full h-full object-cover rounded-inner shadow-2xl border border-white/10" />
+                                        </div>
+
+                                        <div className="flex-1 text-center md:text-left space-y-8">
+                                            <div>
+                                                <h1 className="text-4xl md:text-5xl font-black mb-2 tracking-tight">{selectedArtist.name}</h1>
+                                                <p className="text-gray-400 font-bold uppercase tracking-widest">{selectedArtist.nameEn}</p>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-8">
+                                                <div className="bg-white/5 p-4 rounded-inner text-left">
+                                                    <div className="text-[10px] font-black text-gray-500 uppercase mb-1">Genre</div>
+                                                    <div className="font-bold text-sm">{selectedArtist.genre}</div>
+                                                </div>
+                                                <div className="bg-white/5 p-4 rounded-inner text-left">
+                                                    <div className="text-[10px] font-black text-gray-500 uppercase mb-1">Trigger</div>
+                                                    <div className="font-bold text-sm text-[#1DB954]">{selectedArtist.trigger || "なし"}</div>
+                                                </div>
+                                                <div className="col-span-2 space-y-2 text-left">
+                                                    <div className="text-[10px] font-black text-gray-500 uppercase">Tags</div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {selectedArtist.tags.map(tag => (
+                                                            <span key={tag} className="px-4 py-1.5 bg-[#282828] border border-white/10 rounded-full text-xs font-bold text-gray-300">#{tag}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-3 pt-4">
+                                                <button className="flex-1 h-12 bg-white/5 hover:bg-white/10 font-bold rounded-inner transition-all border border-white/10">編集</button>
+                                                <button className="px-6 h-12 bg-red-900/10 text-red-500 hover:bg-red-900/20 rounded-inner border border-red-900/20"><i className="fa-solid fa-trash-can"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

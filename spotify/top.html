@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spotify Mixer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Spotify Circularに最も近い、幾何学的で柔らかな曲線を持つOutfitを導入 */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&family=Noto+Sans+JP:wght@900&display=swap');
+
+        :root {
+            --spotify-green: #1DB954;
+            --spotify-black: #000000;
+        }
+
+        body {
+            background-color: var(--spotify-black);
+            color: white;
+            /* 角を抑え、円形に近いジオメトリックなフォントへ */
+            font-family: 'Outfit', 'Noto Sans JP', sans-serif;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .spotify-bg {
+            background: 
+                radial-gradient(circle at 50% -20%, #1db95422 0%, transparent 50%),
+                linear-gradient(180deg, #121212 0%, #000000 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-brand {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            opacity: 0.9;
+        }
+
+        /* サービス名：Outfitの900ウェイトを使用。文字間を少し詰め、角を丸める */
+        .service-name {
+            font-size: clamp(3.5rem, 15vw, 6.8rem);
+            line-height: 0.88;
+            letter-spacing: -0.05em;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 900;
+        }
+
+        .catch-copy {
+            font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+            letter-spacing: -0.01em;
+            color: #b3b3b3;
+            font-weight: 700;
+            opacity: 0.8;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        /* ボタンもSpotify公式に合わせ、やや「ボールド」気味で「丸い」印象に */
+        .btn-spotify {
+            background-color: var(--spotify-green);
+            color: #000000;
+            font-weight: 800;
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+            border-radius: 500px;
+            padding: 1.1rem 3.5rem;
+            transition: all 0.3s cubic-bezier(0.3, 0, 0, 1);
+            margin-top: 3.5rem;
+            text-transform: uppercase;
+        }
+
+        .btn-spotify:hover {
+            transform: scale(1.04);
+            background-color: #1ed760;
+        }
+
+        .legal-links {
+            position: fixed;
+            bottom: 2.5rem;
+            display: flex;
+            gap: 2rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #404040;
+            letter-spacing: 0.05em;
+        }
+
+        .legal-links a:hover {
+            color: #b3b3b3;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s cubic-bezier(0.2, 1, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="spotify-bg px-6">
+        
+        <div class="header-brand fade-in">
+            <i class="fa-brands fa-spotify text-3xl text-[#1DB954]"></i>
+            <span class="text-sm font-black tracking-tighter uppercase">Mixer</span>
+        </div>
+
+        <div class="flex-1 flex flex-col items-center justify-center">
+            <div class="fade-in flex flex-col items-center">
+                <h1 class="service-name uppercase">
+                    Spotify<br><span class="text-[#1DB954]">Mixer</span>
+                </h1>
+                
+                <p class="catch-copy text-center">
+                    アーティストを混ぜ合わせ、新たな発見を。
+                </p>
+
+                <button class="btn-spotify">
+                    はじめる
+                </button>
+            </div>
+        </div>
+
+        <div class="w-full flex justify-center">
+            <div class="legal-links fade-in" style="animation-delay: 0.3s;">
+                <a href="#">利用規約</a>
+                <a href="#">プライバシーポリシー</a>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

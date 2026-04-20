@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unimoa - Signup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --spotify-black: #121212;
+            --spotify-green: #1DB954;
+        }
+        body {
+            background-color: var(--spotify-black);
+            color: white;
+            font-family: 'Circular', 'Inter', 'Noto Sans JP', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .input-spotify {
+            background-color: #242424;
+            border: 1px solid transparent;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .input-spotify:hover { background-color: #2a2a2a; }
+        .input-spotify:focus { border-color: white; outline: none; background-color: #242424; }
+
+        .btn-spotify {
+            background-color: var(--spotify-green);
+            color: black;
+            font-weight: 800;
+            border-radius: 500px;
+            transition: all 0.2s;
+        }
+        .btn-spotify:hover { transform: scale(1.04); background-color: #1ed760; }
+        
+        .social-btn {
+            border: 1px solid #727272;
+            border-radius: 500px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .social-btn:hover { border-color: white; background: rgba(255,255,255,0.05); }
+
+        .fade-up { animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.1); }
+        .dot-active { background: var(--spotify-green); box-shadow: 0 0 10px var(--spotify-green); }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* カスタムセレクトボックスの見た目 */
+        select.input-spotify {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1rem;
+        }
+    </style>
+</head>
+<body class="h-screen overflow-hidden">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const App = () => {
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            const [isSignup, setIsSignup] = useState(false); // 新規登録フラグ
+            const [step, setStep] = useState(1);
+
+            // ログイン画面
+            if (!isLoggedIn && !isSignup) {
+                return (
+                    <div className="h-full overflow-y-auto no-scrollbar bg-gradient-to-b from-[#1a1a1a] to-[#121212]">
+                        <div className="min-h-full flex flex-col items-center px-8 pt-10 pb-12 fade-up">
+                            <div className="mb-8">
+                                <i className="fa-solid fa-compact-disc text-6xl text-[#1DB954]"></i>
+                            </div>
+                            <h1 className="text-3xl font-black text-center mb-10 tracking-tighter">
+                                音をデザインする。<br/>今すぐログイン。
+                            </h1>
+                            <div className="w-full max-w-[400px] space-y-3">
+                                <button onClick={() => setIsLoggedIn(true)} className="social-btn w-full h-14 flex items-center px-8 gap-4">
+                                    <i className="fa-brands fa-google text-xl w-6"></i>
+                                    <span className="flex-1 text-center">Googleで継続</span>
+                                </button>
+                                <button onClick={() => setIsLoggedIn(true)} className="social-btn w-full h-14 flex items-center px-8 gap-4">
+                                    <i className="fa-brands fa-github text-xl w-6"></i>
+                                    <span className="flex-1 text-center">GitHubで継続</span>
+                                </button>
+                                <div className="py-4 flex items-center gap-4">
+                                    <div className="h-[1px] flex-1 bg-white/10"></div>
+                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">OR</span>
+                                    <div className="h-[1px] flex-1 bg-white/10"></div>
+                                </div>
+                                <form onSubmit={(e) => {e.preventDefault(); setIsLoggedIn(true)}} className="space-y-4">
+                                    <div>
+                                        <label className="text-xs font-black mb-2 block ml-1 uppercase tracking-wider">メールアドレス</label>
+                                        <input type="email" required className="input-spotify w-full h-14 px-5 rounded-md" placeholder="email@example.com" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-black mb-2 block ml-1 uppercase tracking-wider">パスワード</label>
+                                        <input type="password" required className="input-spotify w-full h-14 px-5 rounded-md" placeholder="Password" />
+                                    </div>
+                                    <div className="flex justify-end pt-1">
+                                        <a href="#" className="text-sm font-bold text-white underline hover:text-[#1ed760] transition-colors">パスワードをお忘れですか？</a>
+                                    </div>
+                                    <div className="pt-4">
+                                        <button type="submit" className="btn-spotify w-full h-14">ログイン</button>
+                                    </div>
+                                </form>
+                                <div className="pt-10 text-center">
+                                    <p className="text-sm font-black text-gray-400">
+                                        アカウントをお持ちでないですか？ <br/>
+                                        <span onClick={() => setIsSignup(true)} className="text-white underline cursor-pointer hover:text-[#1ed760] transition-colors">今すぐ無料で登録</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // 新規登録画面
+            if (!isLoggedIn && isSignup) {
+                return (
+                    <div className="h-full overflow-y-auto no-scrollbar bg-gradient-to-b from-[#1a1a1a] to-[#121212]">
+                        <div className="min-h-full flex flex-col items-center px-8 pt-10 pb-12 fade-up">
+                            <div className="mb-8">
+                                <i className="fa-solid fa-compact-disc text-6xl text-[#1DB954]"></i>
+                            </div>
+                            <h1 className="text-3xl font-black text-center mb-10 tracking-tighter">
+                                サインアップして<br/>構築を開始しよう。
+                            </h1>
+                            <div className="w-full max-w-[400px] space-y-6">
+                                <form onSubmit={(e) => {e.preventDefault(); setIsLoggedIn(true)}} className="space-y-5">
+                                    <div>
+                                        <label className="text-xs font-black mb-2 block ml-1 uppercase tracking-wider">メールアドレスは何ですか？</label>
+                                        <input type="email" required className="input-spotify w-full h-14 px-5 rounded-md" placeholder="email@example.com" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-black mb-2 block ml-1 uppercase tracking-wider">パスワードを作成する</label>
+                                        <input type="password" required className="input-spotify w-full h-14 px-5 rounded-md" placeholder="Password" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-black mb-2 block ml-1 uppercase tracking-wider">プロフィール名</label>
+                                        <input type="text" className="input-spotify w-full h-14 px-5 rounded-md" placeholder="プレイリストに表示される名前" />
+                                        <p className="text-[10px] text-gray-500 mt-2 ml-1 font-bold italic">※後で変更可能です</p>
+                                    </div>
+
+                                    <div className="pt-4">
+                                        <button type="submit" className="btn-spotify w-full h-14">登録する</button>
+                                    </div>
+                                </form>
+
+                                <div className="flex items-center gap-4">
+                                    <div className="h-[1px] flex-1 bg-white/10"></div>
+                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">OR</span>
+                                    <div className="h-[1px] flex-1 bg-white/10"></div>
+                                </div>
+
+                                <button onClick={() => setIsLoggedIn(true)} className="social-btn w-full h-14 flex items-center px-8 gap-4">
+                                    <i className="fa-brands fa-google text-xl w-6"></i>
+                                    <span className="flex-1 text-center">Googleで登録</span>
+                                </button>
+
+                                <div className="pt-10 text-center border-t border-white/5">
+                                    <p className="text-sm font-black text-gray-400">
+                                        すでにアカウントをお持ちですか？ <br/>
+                                        <span onClick={() => setIsSignup(false)} className="text-white underline cursor-pointer hover:text-[#1ed760] transition-colors">今すぐログイン</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // メインコンテンツ
+            return (
+                <div className="flex flex-col h-screen bg-[#121212]">
+                    <header className="px-6 py-6 flex items-center justify-between border-b border-white/5">
+                        <div className="flex items-center gap-3">
+                            <i className="fa-solid fa-compact-disc text-2xl text-[#1DB954]"></i>
+                            <span className="font-black tracking-tighter text-xl">UNIMOA</span>
+                        </div>
+                        <div onClick={() => setIsLoggedIn(false)} className="w-10 h-10 rounded-full bg-[#282828] flex items-center justify-center cursor-pointer hover:bg-[#333]">
+                            <i className="fa-solid fa-user text-xs"></i>
+                        </div>
+                    </header>
+
+                    <main className="flex-1 overflow-y-auto no-scrollbar px-6 py-10">
+                        <div className="max-w-2xl mx-auto">
+                            <div className="flex justify-center gap-3 mb-12">
+                                {[1, 2, 3].map(s => <div key={s} className={`dot ${step === s ? 'dot-active' : ''}`}></div>)}
+                            </div>
+                            
+                            {step === 1 && (
+                                <div className="fade-up">
+                                    <h2 className="text-4xl font-black mb-10 tracking-tight">Select Seeds</h2>
+                                    <div className="aspect-video w-full bg-[#181818] rounded-2xl border border-white/5 flex items-center justify-center text-gray-600 font-black italic">
+                                        CONTENT AREA
+                                    </div>
+                                    <div className="fixed bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black via-black/80 to-transparent flex justify-center">
+                                        <button onClick={() => setStep(2)} className="btn-spotify w-full max-w-lg h-16 text-lg">次へ進む</button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {step === 2 && (
+                                <div className="fade-up">
+                                    <h2 className="text-4xl font-black mb-10">Configure</h2>
+                                    <div className="bg-[#181818] rounded-3xl p-10 space-y-8">
+                                        <div className="h-2 w-full bg-white/10 rounded-full"></div>
+                                        <div className="h-2 w-1/2 bg-white/10 rounded-full"></div>
+                                    </div>
+                                    <button onClick={() => setStep(3)} className="btn-spotify w-full h-16 mt-12 text-lg">構築開始</button>
+                                    <button onClick={() => setStep(1)} className="w-full mt-6 text-sm font-black text-gray-500">戻る</button>
+                                </div>
+                            )}
+
+                            {step === 3 && (
+                                <div className="fade-up text-center pt-10">
+                                    <div className="w-20 h-20 bg-[#1DB954] rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg shadow-[#1DB954]/20">
+                                        <i className="fa-solid fa-check text-3xl text-black"></i>
+                                    </div>
+                                    <h2 className="text-4xl font-black mb-12">Complete</h2>
+                                    <button onClick={() => setStep(1)} className="btn-spotify px-16 h-14 text-sm tracking-widest">RESET</button>
+                                </div>
+                            )}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
