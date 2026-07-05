@@ -1,1 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - 音楽制作進行管理システム</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Flowbite CSS CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <!-- フォントのメリハリ（900までインポート） -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            letter-spacing: -0.02em;
+        }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<!-- 背景をただの白や明るいグレーではなく、洗練された「slate-50（上品な青みグレー）」に -->
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
 
+    <div id="app" class="flex flex-col min-h-screen" v-cloak>
+        
+        <!-- ヘッダー：境界線をくっきりさせ、高さを出してシャープに -->
+        <nav class="bg-white border-b border-slate-200/80 sticky top-0 z-40 backdrop-blur-md bg-white/90">
+            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+                <a href="#" @click.prevent="currentPage = 'lp'" class="flex items-center space-x-2.5">
+                    <div class="bg-slate-900 text-white p-2 rounded-xl shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                        </svg>
+                    </div>
+                    <span class="self-center text-lg font-black tracking-tight text-slate-900">SoundProgress</span>
+                </a>
+                
+                <div class="flex items-center space-x-4">
+                    <button v-if="currentPage === 'lp'" @click="loginWithDiscord" type="button" class="text-white bg-[#5865F2] hover:bg-[#4752C4] focus:ring-4 focus:ring-indigo-100 font-bold rounded-xl text-sm px-4 py-2.5 inline-flex items-center transition-all shadow-sm">
+                        <svg class="w-4 h-4 me-2" fill="currentColor" viewBox="0 0 21 16" xmlns="http://www.w3.org/2000/svg"><path d="M16.942 1.556a16.3 16.3 0 0 0-4.026-1.248 12.5 12.5 0 0 0-.535 1.1 15.019 15.019 0 0 0-4.76 0 11.53 11.53 0 0 0-.54-1.1 16.205 16.205 0 0 0-4.026 1.248C.982 4.778-.139 7.913.014 11.008a16.14 16.14 0 0 0 4.964 2.489c.42-.569.782-1.185 1.085-1.84a10.237 10.237 0 0 1-1.57-.745c.13-.096.26-.197.382-.3a11.533 11.533 0 0 0 10.436 0c.123.103.25.204.382.3a10.4 10.4 0 0 1-1.57.745c.307.65.668 1.27 1.087 1.84a16.214 16.214 0 0 0 4.964-2.49c.193-3.46-.774-6.551-3.08-9.452ZM6.904 9.48c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Zm7.192 0c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Z"/></svg>
+                        Discordログイン
+                    </button>
+                    <div v-else class="flex items-center space-x-3 bg-white p-1.5 pe-4 border border-slate-200 rounded-full shadow-sm">
+                        <img class="w-7 h-7 rounded-full" :src="mockUser.avatar" :alt="mockUser.name">
+                        <span class="text-xs font-bold text-slate-700">{{ mockUser.name }}</span>
+                        <span class="text-[10px] text-indigo-600 bg-indigo-50 font-bold px-2 py-0.5 rounded-full border border-indigo-100">
+                            {{ mockUser.role === 'admin' ? '管理者' : '一般' }}
+                        </span>
+                        <button @click="logout" class="text-xs text-slate-400 hover:text-red-500 font-medium transition-colors ps-2 border-l border-slate-200">ログアウト</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- メイン領域 -->
+        <main class="flex-grow w-full max-w-screen-xl mx-auto px-4 py-12">
+            
+            <!-- ========================================== -->
+            <!-- 📄 画面1. ランディングページ -->
+            <!-- ========================================== -->
+            <div v-if="currentPage === 'lp'" class="space-y-16 py-4">
+                <!-- ヒーロー：文字サイズを大きく、ウェイトを最太（font-black）にして説得力を強化 -->
+                <div class="text-center max-w-3xl mx-auto space-y-6">
+                    <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full border border-indigo-200 tracking-wider">
+                        DISCORD COMPLETELY INTEGRATED
+                    </span>
+                    <h1 class="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight sm:leading-none">
+                        音楽制作の進行管理を、<br><span class="text-indigo-600">もっと強固に、シンプルに。</span>
+                    </h1>
+                    <p class="text-sm sm:text-base text-slate-500 leading-relaxed max-w-xl mx-auto font-medium">
+                        アカウント分裂や煩雑なマージ処理をすべて根こそぎカット。<br class="hidden sm:inline">Discord認証一本に絞り込んだ、最もシンプルで頑丈な制作管理システム。
+                    </p>
+                    
+                    <!-- ログインエリア：コンポーネントとしての密度を高め、ボタンの押しやすさを向上 -->
+                    <div class="mt-10 p-8 bg-white border border-slate-200 rounded-2xl max-w-md mx-auto shadow-sm ring-4 ring-slate-100">
+                        <button @click="loginWithDiscord" class="w-full text-white bg-[#5865F2] hover:bg-[#4752C4] font-bold rounded-xl text-base px-6 py-4 text-center inline-flex items-center justify-center transition-all shadow-md active:scale-[0.98]">
+                            <svg class="w-5 h-5 me-3" fill="currentColor" viewBox="0 0 21 16" xmlns="http://www.w3.org/2000/svg"><path d="M16.942 1.556a16.3 16.3 0 0 0-4.026-1.248 12.5 12.5 0 0 0-.535 1.1 15.019 15.019 0 0 0-4.76 0 11.53 11.53 0 0 0-.54-1.1 16.205 16.205 0 0 0-4.026 1.248C.982 4.778-.139 7.913.014 11.008a16.14 16.14 0 0 0 4.964 2.489c.42-.569.782-1.185 1.085-1.84a10.237 10.237 0 0 1-1.57-.745c.13-.096.26-.197.382-.3a11.533 11.533 0 0 0 10.436 0c.123.103.25.204.382.3a10.4 10.4 0 0 1-1.57.745c.307.65.668 1.27 1.087 1.84a16.214 16.214 0 0 0 4.964-2.49c.193-3.46-.774-6.551-3.08-9.452ZM6.904 9.48c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Zm7.192 0c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Z"/></svg>
+                            Discordで今すぐはじめる
+                        </button>
+                        <div class="mt-4 flex items-center justify-center space-x-2 text-xs text-slate-400 font-medium">
+                            <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg>
+                            <span>パスワード不要</span>
+                            <span class="text-slate-200">|</span>
+                            <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg>
+                            <span>招待リンク不要</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 特徴：カードの情報量を上げ、Flowbite本来のしっかりとした枠組みへ変更 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                    <div class="p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900">大容量ストレージ＆一元管理</h3>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed font-medium">重いWAV、イラストPSD等の成果物をプロジェクト単位で格納。もう「どのDMで送ったっけ？」と迷う必要はありません。</p>
+                    </div>
+
+                    <div class="p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900">波形タイムスタンプ・リテイク</h3>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed font-medium">音源波形の秒数を指定して、修正指示をタイムラインにピン留め。進捗管理とリテイク確認をシームレスに直結。</p>
+                    </div>
+
+                    <div class="p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900">Discord Bot 自動通知同期</h3>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed font-medium">Web上でのファイル提出やリテイク指示をBotがDiscordへ自動転送。担当者への締め切りリマインドも完璧です。</p>
+                    </div>
+
+                    <div class="p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="p-2 bg-amber-50 text-amber-600 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900">ストック型ナレッジWiki</h3>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed font-medium">サークル内規約、エンコード仕様、歌詞の構成案など、チャットで流れてほしくない共有資産を美しくドキュメント化。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 📄 画面2. コミュニティ一覧画面（ホーム画面） -->
+            <!-- ========================================== -->
+            <div v-if="currentPage === 'home'" class="space-y-8 animate-fade-in">
+                <!-- タイトルエリア：無機質さをなくし、洗練されたダッシュボード風に変更 -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5 gap-4">
+                    <div>
+                        <div class="flex items-center space-x-2 text-xs text-indigo-600 font-bold uppercase tracking-wider mb-1">
+                            <span>DASHBOARD</span>
+                            <span>/</span>
+                            <span class="text-slate-400">SELECT COMMUNITY</span>
+                        </div>
+                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">所属コミュニティ</h1>
+                        <p class="text-xs text-slate-500 mt-0.5 font-medium">紐付けられたDiscordサーバーを切り替えてプロジェクトを管理します。</p>
+                    </div>
+                    <!-- 管理者専用アクションボタン -->
+                    <div v-if="mockUser.role === 'admin'" class="shrink-0">
+                        <button type="button" class="text-slate-900 bg-white border border-slate-300 hover:bg-slate-50 font-bold rounded-xl text-xs px-4 py-2.5 inline-flex items-center transition-all shadow-sm active:scale-[0.98]">
+                            <svg class="w-4 h-4 me-2 text-slate-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                            新規コミュニティを連携
+                        </button>
+                    </div>
+                </div>
+
+                <!-- コミュニティリスト：密度、枠線のコントラスト、ホバーエフェクトを現代的な水準へ引き上げ -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div v-for="com in mockCommunities" :key="com.id" class="group bg-white border border-slate-200/90 rounded-xl hover:border-indigo-500 hover:ring-4 hover:ring-indigo-50 transition-all cursor-pointer p-6 flex flex-col justify-between shadow-sm relative overflow-hidden" @click="selectCommunity(com)">
+                        <!-- ホバー時に少しアクセントが入る日本のSaaSライクな設計 -->
+                        <div class="space-y-4">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center space-x-3.5">
+                                    <div class="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center font-black text-base shadow-sm group-hover:bg-indigo-600 transition-colors">
+                                        {{ com.name.substring(0, 1) }}
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{{ com.name }}</h3>
+                                        <p class="text-[10px] font-mono text-slate-400 mt-0.5">ID: {{ com.discordServerId }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- バッジまわりのレイアウト密度を調整 -->
+                            <div class="flex items-center gap-2 pt-1">
+                                <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-slate-200">
+                                    {{ com.projectCount }} プロジェクト進行中
+                                </span>
+                                <span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-emerald-200 flex items-center">
+                                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full me-1.5 animate-pulse"></span>
+                                    Bot同期済
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 pt-4 border-t border-slate-100 flex justify-between items-center text-xs font-bold text-slate-500 group-hover:text-indigo-600 transition-colors">
+                            <span class="text-[11px] text-slate-400 font-medium">最終更新: 2時間前</span>
+                            <div class="flex items-center">
+                                開く
+                                <svg class="w-3.5 h-3.5 ms-1 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 下部ガイド：FlowbiteのInfo Alertの構造を取り入れ、文字が浮かないように背景とコントラストを調整 -->
+                <div class="p-4 bg-blue-50/50 border border-blue-200/60 rounded-xl flex items-start space-x-3">
+                    <svg class="w-4 h-4 text-blue-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.063.852l-.708 2.836a.75.75 0 001.063.852l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
+                    <div class="text-xs text-slate-600 leading-normal font-medium">
+                        <span class="font-bold text-slate-900">お探しのコミュニティが見つかりませんか？</span><br>
+                        Discordサーバーの管理者権限をお持ちの場合、右上の「新規コミュニティを連携」からBotをサーバーに招待することで、自動的にここに作業スペースが生成されます。
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- フッター -->
+        <footer class="bg-white border-t border-slate-200 text-center py-5 mt-auto">
+            <p class="text-[11px] font-medium text-slate-400">&copy; 2026 SoundProgress. Built for Japanese Creators.</p>
+        </footer>
+    </div>
+
+    <!-- Vue.js 3 (CDN) -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Flowbite JS (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentPage: 'lp',
+                    mockUser: {
+                        name: 'タロウ_ボカロP',
+                        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                        role: 'admin'
+                    },
+                    mockCommunities: [
+                        { id: 1, name: 'ボカロPサークルX', discordServerId: '987654321012345678', projectCount: 4 },
+                        { id: 2, name: '〇〇の国 (歌い手グループ)', discordServerId: '123456789012345678', projectCount: 2 },
+                        { id: 3, name: 'クリエイター同盟 東北支部', discordServerId: '556677889900112233', projectCount: 7 }
+                    ]
+                }
+            },
+            methods: {
+                loginWithDiscord() {
+                    this.currentPage = 'home';
+                },
+                logout() {
+                    this.currentPage = 'lp';
+                },
+                selectCommunity(community) {
+                    alert(`コミュニティ「${community.name}」が選択されました。\n次はいよいよ【画面3. プロジェクト一覧画面】へ進みます。`);
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
