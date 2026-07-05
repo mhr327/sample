@@ -1,1 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - ワークスペース</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+            letter-spacing: -0.01em;
+        }
+        [v-cloak] { display: none; }
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.1s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+    </style>
+</head>
+<body class="bg-gray-50/50 text-gray-900 min-h-screen flex flex-col antialiased">
 
+    <div id="app" class="flex flex-col min-h-screen" v-cloak>
+        
+        <nav class="bg-white border-b border-gray-100 sticky top-0 z-40 backdrop-blur-md bg-white/90">
+            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+                <a href="#" @click.prevent="backToDashboard" class="flex items-center space-x-3">
+                    <div class="bg-indigo-600 text-white p-2 rounded-xl">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <span class="self-center text-base font-bold tracking-tight text-gray-900">SoundProgress</span>
+                </a>
+                
+                <div class="relative">
+                    <button @click="isDropdownOpen = !isDropdownOpen" type="button" class="flex items-center space-x-3 bg-gray-100 p-1 pe-3 rounded-full border border-gray-200/60 hover:bg-gray-200/50 transition-colors">
+                        <img class="w-6 h-6 rounded-full" :src="mockUser.avatar" :alt="mockUser.name">
+                        <span class="text-xs font-medium text-gray-700">{{ mockUser.name }}</span>
+                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path></svg>
+                    </button>
+                    <div v-if="isDropdownOpen" class="absolute right-0 mt-2 w-48 bg-white border border-gray-200/80 rounded-xl shadow-lg py-1 z-50">
+                        <a href="#" @click.prevent="logout" class="block px-4 py-2 text-xs text-red-600 hover:bg-red-50 font-bold">ログアウト</a>
+                    </div>
+                    <div v-if="isDropdownOpen" @click="isDropdownOpen = false" class="fixed inset-0 z-40"></div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex-grow w-full max-w-screen-xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
+            
+            <aside class="w-full md:w-60 shrink-0 space-y-4">
+                <div class="p-3 bg-white border border-gray-200/60 rounded-xl shadow-sm flex items-center justify-between">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-7 h-7 bg-gray-900 text-white rounded-lg flex items-center justify-center font-bold text-xs">
+                            {{ currentCommunity.name.substring(0, 1) }}
+                        </div>
+                        <div class="truncate">
+                            <h2 class="text-xs font-bold text-gray-900 truncate">{{ currentCommunity.name }}</h2>
+                            <p class="text-[9px] font-mono text-gray-400">ID: {{ currentCommunity.discordServerId.substring(0, 8) }}...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <nav class="space-y-1">
+                    <button @click="backToDashboard" :class="currentTab === 'projects' ? 'text-indigo-600 bg-indigo-50/60 border-indigo-100/40 font-bold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full flex items-center space-x-3 px-3 py-2 text-xs rounded-lg border border-transparent transition-all text-left">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"></path></svg>
+                        <span>進行中プロジェクト</span>
+                    </button>
+                    <button @click="currentTab = 'wiki'; selectedProject = null" :class="currentTab === 'wiki' ? 'text-indigo-600 bg-indigo-50/60 border-indigo-100/40 font-bold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full flex items-center space-x-3 px-3 py-2 text-xs rounded-lg border border-transparent transition-all text-left">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"></path></svg>
+                        <span>サークルWiki</span>
+                    </button>
+                    <button @click="currentTab = 'settings'; selectedProject = null" :class="currentTab === 'settings' ? 'text-indigo-600 bg-indigo-50/60 border-indigo-100/40 font-bold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full flex items-center space-x-3 px-3 py-2 text-xs rounded-lg border border-transparent transition-all text-left">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.43l-1.003.767c-.3.23-.452.617-.432.998.002.04.004.08.004.122 0 .04-.002.08-.004.122-.02.38.132.768.432.998l1.003.767a1.125 1.125 0 01.26 1.43l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.216-.456c-.356-.133-.751-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.43l1.004-.767c.301-.23.452-.617.432-.998-.001-.04-.003-.08-.003-.122 0-.04.002-.08.003-.122.02-.38-.132-.768-.432-.998L2.243 11.5a1.125 1.125 0 01-.26-1.43L3.28 7.824a1.125 1.125 0 011.37-.49l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z"></path></svg>
+                        <span>Discord連携・Bot設定</span>
+                    </button>
+                </nav>
+            </aside>
+
+            <main class="flex-grow">
+                <transition name="fade" mode="out-in">
+                    
+                    <div v-if="selectedProject" key="project-detail" class="space-y-6">
+                        <div class="pb-4 border-b border-gray-100 space-y-2">
+                            <div class="flex items-center space-x-2 text-xs text-gray-400">
+                                <a href="#" @click.prevent="backToDashboard" class="hover:text-indigo-600 transition-colors">進行中プロジェクト</a>
+                                <span>/</span>
+                                <span class="text-gray-600 truncate max-w-[180px] sm:max-w-none">{{ selectedProject.title }}</span>
+                            </div>
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="flex items-center space-x-2.5">
+                                    <span :class="selectedProject.tagClass" class="text-[10px] font-medium px-2 py-0.5 rounded border">
+                                        {{ selectedProject.tag }}
+                                    </span>
+                                    <h1 class="text-lg font-bold text-gray-900 tracking-tight">{{ selectedProject.title }}</h1>
+                                </div>
+                                <span class="text-xs font-semibold text-gray-400">締切: {{ selectedProject.dueDate }}</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-900 rounded-2xl p-5 text-white space-y-4 shadow-md">
+                            <div class="flex items-center justify-between text-xs text-gray-400">
+                                <span class="font-mono bg-gray-800 px-2 py-0.5 rounded text-[10px]">LATEST: ハルノウタ_mix_v2.wav</span>
+                                <span class="text-[10px]">提出者: スズキ（2時間前）</span>
+                            </div>
+                            
+                            <div class="relative bg-gray-800/40 h-16 rounded-xl border border-gray-800 flex items-center justify-between px-4 cursor-pointer overflow-hidden group" @click="clickWaveform">
+                                <div class="absolute left-0 top-0 bottom-0 bg-indigo-500/10 border-r border-indigo-400" style="width: 38%;"></div>
+                                <div class="w-full flex items-end justify-between h-8 opacity-60 group-hover:opacity-80 transition-opacity">
+                                    <div v-for="h in [30,50,70,40,30,60,80,95,70,60,40,50,80,60,40,30,45,70,90,55,40,60,75,40,30,50,85,60,30,40,70,50]" :style="{ height: h + '%' }" class="w-[2px] bg-gray-500 rounded-full"></div>
+                                </div>
+                                <div class="absolute bg-amber-500 text-[9px] text-white px-1 rounded font-bold left-[38%] -translate-x-1/2 bottom-1 shadow-sm">01:14</div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-1">
+                                <button @click="alert('再生/一時停止（プロトタイプ）')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition-colors flex items-center space-x-1">
+                                    <span>▶ 再生</span>
+                                    <span class="font-mono text-[10px] text-indigo-200 pl-1">01:14 / 03:45</span>
+                                </button>
+                                <span class="text-[10px] text-gray-500">※波形をクリックすると秒数を自動取得します</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+                            
+                            <div class="md:col-span-2 bg-white border border-gray-200/60 rounded-xl p-5 space-y-4 shadow-sm h-fit">
+                                <h3 class="text-xs font-bold text-gray-900 tracking-wider uppercase">📝 リテイク指示を追加</h3>
+                                <form @submit.prevent="addRetake" class="space-y-3.5 text-xs">
+                                    <div class="space-y-1">
+                                        <label class="block font-bold text-gray-500">指定タイムスタンプ</label>
+                                        <div class="flex items-center space-x-2">
+                                            <input v-model="newRetake.timestamp" type="text" placeholder="00:00" required class="w-24 border-gray-200 rounded-xl p-2 focus:border-indigo-500 focus:ring-indigo-500 text-xs font-mono">
+                                            <span class="text-gray-400 text-[11px]">←波形クリックでも入ります</span>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="block font-bold text-gray-500">修正指示内容</label>
+                                        <textarea v-model="newRetake.comment" required rows="3" placeholder="例: ここのスネアの抜けをもう少し良くしたい、ピッチがわずかにズレている気がします等" class="w-full border-gray-200 rounded-xl p-2.5 focus:border-indigo-500 focus:ring-indigo-500 text-xs leading-relaxed"></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full text-center bg-gray-900 hover:bg-gray-800 text-white font-bold p-2.5 rounded-xl transition-colors text-xs shadow-sm">
+                                        指示を確定してDiscordに飛ばす
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div class="md:col-span-3 bg-white border border-gray-200/60 rounded-xl p-5 space-y-4 shadow-sm">
+                                <h3 class="text-xs font-bold text-gray-900 tracking-wider uppercase">💬 指示・修正ログ</h3>
+                                
+                                <div class="flow-root">
+                                    <ul class="divide-y divide-gray-100">
+                                        <li v-for="ret in mockRetakes" :key="ret.id" class="py-3.5 first:pt-0 last:pb-0 space-y-1.5">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="bg-amber-50 text-amber-700 font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200/60">
+                                                        {{ ret.timestamp }}
+                                                    </span>
+                                                    <span class="text-[11px] font-bold text-gray-700">{{ ret.author }}</span>
+                                                </div>
+                                                <span class="text-[10px] text-gray-400 font-medium">{{ ret.time }}</span>
+                                            </div>
+                                            <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap pl-1">{{ ret.comment }}</p>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div v-else-if="currentTab === 'projects'" key="projects" class="space-y-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-gray-100 gap-4">
+                            <div>
+                                <h1 class="text-xl font-bold text-gray-900 tracking-tight">進行中プロジェクト</h1>
+                                <p class="text-xs text-gray-400 mt-0.5">このコミュニティで動いているすべての音源制作案件です。</p>
+                            </div>
+                            <div>
+                                <button @click="isModalOpen = true" type="button" class="text-white bg-gray-900 hover:bg-gray-800 font-medium rounded-xl text-xs px-3.5 py-2.5 transition-colors shadow-sm">
+                                    新規プロジェクトを追加
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200/60 rounded-xl overflow-hidden shadow-sm">
+                            <div class="divide-y divide-gray-100">
+                                <div v-for="proj in mockProjects" :key="proj.id" @click="selectProject(proj)" class="p-4 sm:p-5 hover:bg-gray-50/50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer group">
+                                    <div class="space-y-1.5 min-w-0 flex-grow">
+                                        <div class="flex items-center space-x-2">
+                                            <span :class="proj.tagClass" class="text-[10px] font-medium px-2 py-0.5 rounded border shrink-0">
+                                                {{ proj.tag }}
+                                            </span>
+                                            <h3 class="text-sm font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">{{ proj.title }}</h3>
+                                        </div>
+                                        <div class="flex items-center space-x-3 text-[11px] text-gray-400">
+                                            <span class="flex items-center">
+                                                <span class="w-1.5 h-1.5 bg-gray-400 rounded-full me-1.5"></span>
+                                                担当: {{ proj.assignee }}
+                                            </span>
+                                            <span>•</span>
+                                            <span>更新: {{ proj.updatedAt }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between sm:justify-end gap-6 shrink-0 border-t sm:border-0 pt-2 sm:pt-0 border-gray-50">
+                                        <div class="text-left sm:text-right">
+                                            <p class="text-[10px] text-gray-400 font-medium">締切日</p>
+                                            <p class="text-xs font-semibold" :class="proj.isUrgent ? 'text-amber-600' : 'text-gray-700'">{{ proj.dueDate }}</p>
+                                        </div>
+                                        <svg class="w-4 h-4 text-gray-300 group-hover:text-indigo-400 transition-colors hidden sm:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else-if="currentTab === 'wiki'" key="wiki" class="space-y-6">
+                        <div class="pb-4 border-b border-gray-100">
+                            <h1 class="text-xl font-bold text-gray-900 tracking-tight">サークルWiki</h1>
+                            <p class="text-xs text-gray-400 mt-0.5">Discord内で流れてほしくない、共通ルールや資料のストック場所です。</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="space-y-1.5 bg-white p-3 border border-gray-200/60 rounded-xl h-fit">
+                                <p class="text-[10px] font-bold text-gray-400 px-2 tracking-wider uppercase">📄 ページ一覧</p>
+                                <button v-for="(w, idx) in mockWikis" :key="idx" @click="activeWikiIdx = idx" :class="activeWikiIdx === idx ? 'bg-gray-50 text-gray-900 font-bold' : 'text-gray-500 hover:text-gray-900'" class="w-full text-left text-xs px-2 py-1.5 rounded-lg transition-colors truncate">
+                                    {{ w.title }}
+                                </button>
+                            </div>
+                            <div class="md:col-span-2 bg-white border border-gray-200/60 rounded-xl p-6 space-y-4 shadow-sm">
+                                <h2 class="text-base font-bold text-gray-900">{{ mockWikis[activeWikiIdx].title }}</h2>
+                                <p class="text-[11px] text-gray-400 border-b border-gray-50 pb-2">最終更新: {{ mockWikis[activeWikiIdx].updatedAt }}</p>
+                                <div class="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
+                                    {{ mockWikis[activeWikiIdx].content }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else-if="currentTab === 'settings'" key="settings" class="space-y-6">
+                        <div class="pb-4 border-b border-gray-100">
+                            <h1 class="text-xl font-bold text-gray-900 tracking-tight">Discord連携・Bot設定</h1>
+                            <p class="text-xs text-gray-400 mt-0.5">通知を紐付けるDiscordチャンネルを選択・制御します。</p>
+                        </div>
+                        <div class="bg-white border border-gray-200/60 rounded-xl p-6 space-y-6 shadow-sm max-w-xl">
+                            <div class="space-y-3">
+                                <h3 class="text-xs font-bold text-gray-900 tracking-wider">🔔 進捗通知を爆撃するチャンネル</h3>
+                                <div class="space-y-2">
+                                    <label class="flex items-center space-x-3 p-2.5 rounded-lg hover:bg-gray-50 cursor-pointer border border-transparent hover:border-gray-100 transition-all">
+                                        <input type="checkbox" checked class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                        <span class="text-xs text-gray-700 font-medium">#mix-progress（提出・リテイクログ用）</span>
+                                    </label>
+                                    <label class="flex items-center space-x-3 p-2.5 rounded-lg hover:bg-gray-50 cursor-pointer border border-transparent hover:border-gray-100 transition-all">
+                                        <input type="checkbox" checked class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                        <span class="text-xs text-gray-700 font-medium">#general-announcement（全体周知・締切通知用）</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="pt-4 border-t border-gray-100 flex justify-end">
+                                <button @click="alert('設定を保存しました（Botへ同期完了）')" type="button" class="text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-xl text-xs px-4 py-2.5 transition-colors">
+                                    変更を保存
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </transition>
+            </main>
+        </div>
+
+        <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div @click="isModalOpen = false" class="fixed inset-0 bg-gray-900/30 backdrop-blur-sm"></div>
+            <div class="bg-white rounded-2xl border border-gray-200/80 max-w-md w-full p-6 shadow-xl relative z-10 space-y-4">
+                <div class="flex justify-between items-center border-b border-gray-50 pb-3">
+                    <h3 class="text-sm font-bold text-gray-900">新規プロジェクトの起票</h3>
+                    <button @click="isModalOpen = false" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <form @submit.prevent="addProject" class="space-y-4 text-xs">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-gray-700">プロジェクト（曲名）</label>
+                        <input v-model="newProj.title" type="text" required placeholder="曲名やアセット名を入力" class="w-full border-gray-200 rounded-xl p-2.5 focus:border-indigo-500 text-xs">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block font-bold text-gray-700">担当クリエイター</label>
+                            <input v-model="newProj.assignee" type="text" required placeholder="サトウ_P" class="w-full border-gray-200 rounded-xl p-2.5 focus:border-indigo-500 text-xs">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block font-bold text-gray-700">初期ステータス</label>
+                            <select v-model="newProj.tag" class="w-full border-gray-200 rounded-xl p-2.5 focus:border-indigo-500 text-xs">
+                                <option value="作詞・作曲中">作詞・作曲中</option>
+                                <option value="MIX・リテイク確認">MIX・リテイク確認</option>
+                                <option value="動画・イラスト発注">動画・イラスト発注</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold text-gray-700">デッドライン（締切日）</label>
+                        <input v-model="newProj.dueDate" type="date" required class="w-full border-gray-200 rounded-xl p-2.5 focus:border-indigo-500 text-xs">
+                    </div>
+                    <div class="pt-2 flex justify-end space-x-2">
+                        <button type="button" @click="isModalOpen = false" class="px-3 py-2 text-gray-500 hover:bg-gray-50 rounded-xl font-medium">キャンセル</button>
+                        <button type="submit" class="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 rounded-xl font-bold">作成＆通知を発射</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <footer class="text-center py-8 border-t border-gray-100 bg-white">
+            <p class="text-[10px] font-medium text-gray-400 tracking-wide">&copy; 2026 SoundProgress. Beautiful Silent Dashboard.</p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentTab: 'projects',
+                    isDropdownOpen: false,
+                    isModalOpen: false,
+                    activeWikiIdx: 0,
+                    selectedProject: null, // 現在詳細を開いているプロジェクトオブジェクト
+                    mockUser: { name: 'タロウ_ボカロP', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80' },
+                    currentCommunity: { name: 'ボカロPサークルX', discordServerId: '987654321012345678' },
+                    newProj: { title: '', assignee: '', tag: '作詞・作曲中', dueDate: '2026-08-15' },
+                    
+                    // リテイクの新規フォームデータ
+                    newRetake: { timestamp: '01:14', comment: '' },
+                    
+                    mockProjects: [
+                        { id: 1, title: '新曲「ハルノウタ」アルバムリード曲', tag: '作詞・作曲中', tagClass: 'bg-blue-50 text-blue-700 border-blue-100/70', assignee: 'サトウ（ボカロP）', updatedAt: '25分前', dueDate: '2026.07.20', isUrgent: false },
+                        { id: 2, title: '夏イベント用インスト音源（Ver2.1）', tag: 'MIX・リテイク確認', tagClass: 'bg-purple-50 text-purple-700 border-purple-100/70', assignee: 'スズキ（エンジニア）', updatedAt: '2時間前', dueDate: '2026.07.08 (残り3日)', isUrgent: true },
+                        { id: 3, title: 'MV用イラスト・背景アセット群', tag: '動画・イラスト発注', tagClass: 'bg-gray-100 text-gray-600 border-gray-200/60', assignee: 'タナカ（絵師）', updatedAt: '昨日', dueDate: '2026.08.01', isUrgent: false }
+                    ],
+                    
+                    // 個別リテイクデータのモック
+                    mockRetakes: [
+                        { id: 1, timestamp: '01:14', author: 'タロウ_ボカロP', time: '2時間前', comment: 'サビ前のビルドアップですが、キックの連打をもう少しだけ前に出して、疾走感を強めたいです。' },
+                        { id: 2, timestamp: '02:45', author: 'サトウ（ボカロP）', time: '昨日', comment: 'アウトロのギターソロ裏のベースライン、ルート弾きではなく少し動かしたものに変えられますか？' }
+                    ],
+
+                    mockWikis: [
+                        { title: 'サークル内MIX提出ガイドライン', updatedAt: '3日前', content: '【重要】パラデータの書き出しについて\n1. すべてのトラックは「頭揃え」で書き出してください。\n2. 24bit / 48kHzのWAV形式を推奨します。' },
+                        { title: '2026年夏イベント参加規定', updatedAt: '2週間前', content: 'スケジュール厳守のお願い\n・マスターアップ：2026年7月30日' }
+                    ]
+                }
+            },
+            methods: {
+                selectProject(project) {
+                    this.selectedProject = project;
+                },
+                backToDashboard() {
+                    this.selectedProject = null;
+                    this.currentTab = 'projects';
+                },
+                clickWaveform() {
+                    // モックとしてランダムにタイムスタンプを取得する演出
+                    const minutes = '0' + Math.floor(Math.random() * 3);
+                    const seconds = ('0' + Math.floor(Math.random() * 60)).slice(-2);
+                    this.newRetake.timestamp = `${minutes}:${seconds}`;
+                },
+                addRetake() {
+                    this.mockRetakes.unshift({
+                        id: Date.now(),
+                        timestamp: this.newRetake.timestamp,
+                        author: this.mockUser.name,
+                        time: '今さっき',
+                        comment: this.newRetake.comment
+                    });
+                    alert(`✅ タイムスタンプ [${this.newRetake.timestamp}] へリテイク指示を登録しました。\nDiscordの専用チャンネルへBotが自動メンション付きで爆撃通知しました。`);
+                    this.newRetake.comment = '';
+                },
+                addProject() {
+                    let tagClass = 'bg-blue-50 text-blue-700 border-blue-100/70';
+                    if (this.newProj.tag === 'MIX・リテイク確認') tagClass = 'bg-purple-50 text-purple-700 border-purple-100/70';
+                    if (this.newProj.tag === '動画・イラスト発注') tagClass = 'bg-gray-100 text-gray-600 border-gray-200/60';
+
+                    this.mockProjects.unshift({
+                        id: Date.now(),
+                        title: this.newProj.title,
+                        tag: this.newProj.tag,
+                        tagClass: tagClass,
+                        assignee: this.newProj.assignee,
+                        updatedAt: '今まさに追加',
+                        dueDate: this.newProj.dueDate.replace(/-/g, '.'),
+                        isUrgent: false
+                    });
+                    this.isModalOpen = false;
+                    this.newProj = { title: '', assignee: '', tag: '作詞・作曲中', dueDate: '2026-08-15' };
+                },
+                logout() {
+                    this.isDropdownOpen = false;
+                    alert('ログアウト（プロトタイプのためリセットします）');
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
