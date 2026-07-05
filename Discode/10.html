@@ -1,1 +1,322 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - プロジェクト一覧</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Noto Sans JP', sans-serif;
+            letter-spacing: -0.01em;
+        }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
 
+    <div id="app" class="flex flex-col min-h-screen" v-cloak>
+        
+        <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+                <a href="#" @click.prevent="currentPage = 'projects'" class="flex items-center space-x-2">
+                    <div class="bg-gray-900 text-white p-1.5 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                        </svg>
+                    </div>
+                    <span class="self-center text-lg font-bold tracking-tight text-gray-900">SoundProgress</span>
+                </a>
+                
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs text-gray-500 font-medium bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200">
+                        {{ mockUser.role === 'admin' ? '管理者' : '一般メンバー' }}
+                    </span>
+                    <img class="w-8 h-8 rounded-full border border-gray-200" :src="mockUser.avatar" :alt="mockUser.name">
+                    <button @click="logout" class="text-xs text-gray-500 hover:text-red-600 transition-colors">ログアウト</button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-grow w-full max-w-screen-xl mx-auto px-4 py-8 space-y-8">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <div class="flex items-center space-x-2 text-xs text-gray-400 mb-1">
+                        <span>コミュニティ一覧</span>
+                        <span>/</span>
+                        <span class="text-gray-600 font-medium">{{ currentCommunityName }}</span>
+                    </div>
+                    <h1 class="text-xl font-bold tracking-tight text-gray-900">プロジェクト一覧</h1>
+                </div>
+                <div v-if="mockUser.role === 'admin'">
+                    <button @click="isModalOpen = true" type="button" class="text-white bg-gray-900 hover:bg-gray-800 font-medium rounded-xl text-xs px-4 py-2.5 inline-flex items-center transition-colors shadow-sm">
+                        <svg class="w-3.5 h-3.5 me-1.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                        新規プロジェクトを作成
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                    <p class="text-[11px] font-medium text-gray-400">進行中</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ summaryCounts.processing }} <span class="text-xs font-normal text-gray-400">件</span></p>
+                </div>
+                <div class="p-4 bg-white border border-gray-200 rounded-xl shadow-sm border-l-4 border-l-amber-500">
+                    <p class="text-[11px] font-medium text-amber-600">要リテイク</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ summaryCounts.retake }} <span class="text-xs font-normal text-gray-400">件</span></p>
+                </div>
+                <div class="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                    <p class="text-[11px] font-medium text-red-500">直近の締切 (7日以内)</p>
+                    <p class="text-2xl font-bold text-red-600 mt-1">{{ summaryCounts.urgent }} <span class="text-xs font-normal text-gray-400">件</span></p>
+                </div>
+                <div class="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                    <p class="text-[11px] font-medium text-gray-400">完了</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ summaryCounts.completed }} <span class="text-xs font-normal text-gray-400">件</span></p>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex space-x-1 overflow-x-auto pb-1 md:pb-0">
+                    <button v-for="status in statusTabs" :key="status.value" @click="selectedStatusFilter = status.value" :class="selectedStatusFilter === status.value ? 'bg-gray-900 text-white font-bold' : 'text-gray-600 hover:bg-gray-50 border-gray-200'" class="text-xs px-3 py-1.5 rounded-lg border transition-all whitespace-nowrap">
+                        {{ status.label }}
+                    </button>
+                </div>
+                <div class="relative w-full md:w-64 shrink-0">
+                    <input v-model="searchQuery" type="text" placeholder="プロジェクト名で検索..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div v-for="proj in filteredProjects" :key="proj.id" class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden hover:border-gray-400 transition-all flex flex-col justify-between group cursor-pointer" @click="enterProject(proj)">
+                    
+                    <div>
+                        <div class="h-36 bg-gray-100 relative overflow-hidden flex items-center justify-center border-b border-gray-100">
+                            <img v-if="proj.thumbnail" :src="proj.thumbnail" class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300">
+                            <div v-else class="text-center p-4">
+                                <svg class="w-6 h-6 text-gray-300 mx-auto mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"></path></svg>
+                                <span class="text-[10px] text-gray-400 font-medium">No Image (イラスト未提出)</span>
+                            </div>
+                            <span :class="getStatusClass(proj.status)" class="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm border">
+                                {{ proj.status }}
+                            </span>
+                        </div>
+
+                        <div class="p-4 space-y-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-gray-900 leading-snug tracking-tight group-hover:text-indigo-600 transition-colors truncate">
+                                    {{ proj.title }}
+                                </h3>
+                                <div class="flex items-center space-x-2 mt-1.5 text-[10px] text-gray-400 font-mono">
+                                    <span class="bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded">💬 #{{ proj.discordMainChannel }}</span>
+                                    <span class="text-gray-300">|</span>
+                                    <span class="bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded">🔔 #{{ proj.discordNotifyChannel }}</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between items-center text-[11px]">
+                                    <span class="text-gray-400 font-medium">工程進行度</span>
+                                    <span class="text-gray-900 font-mono font-bold">{{ proj.completedTasks }}/{{ proj.totalTasks }} <span class="text-[9px] text-gray-400 font-normal">Tasks</span></span>
+                                </div>
+                                <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-gray-900 h-1.5 rounded-full transition-all duration-500" :style="{ width: (proj.completedTasks / proj.totalTasks * 100) + '%' }"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-[11px]">
+                        <div class="flex items-center space-x-1.5">
+                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span :class="proj.remainingDays <= 7 && proj.status !== '完了' ? 'text-red-600 font-bold' : 'text-gray-500 font-medium'">
+                                {{ proj.status === '完了' ? '制作完了' : '残り ' + proj.remainingDays + ' 日' }}
+                            </span>
+                        </div>
+                        <div class="flex items-center text-gray-400">
+                            <svg class="w-3.5 h-3.5 me-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A4.617 4.617 0 0110.5 21c-2.3 0-4.185-1.664-4.5-3.874zM15 3.562a4.5 4.5 0 11-4.5 4.5 4.5 4.5 0 014.5-4.5zM12 12.039a15.56 15.56 0 016.75 1.944A3.75 3.75 0 0121 17.25v.499c0 .896-.724 1.617-1.617 1.617H4.617a1.619 1.619 0 01-1.617-1.617v-.499a3.75 3.75 0 012.25-3.267 15.56 15.56 0 016.75-1.944z"></path></svg>
+                            <span class="font-bold text-gray-700">{{ proj.memberCount }}</span><span class="text-[10px] pl-0.5">名</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div v-if="filteredProjects.length === 0" class="text-center py-16 bg-white border border-gray-200 rounded-2xl text-xs text-gray-400">
+                該当する条件のプロジェクトが見つかりません。
+            </div>
+
+        </main>
+
+        <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div @click="isModalOpen = false" class="fixed inset-0 bg-gray-900/30 backdrop-blur-sm"></div>
+            <div class="bg-white rounded-2xl border border-gray-200 max-w-md w-full p-6 shadow-xl relative z-10 space-y-4">
+                <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                    <h3 class="text-sm font-bold text-gray-900">新規プロジェクトの追加</h3>
+                    <button @click="isModalOpen = false" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                
+                <form @submit.prevent="createNewProject" class="space-y-4 text-xs">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-gray-700">プロジェクト名（楽曲タイトル）</label>
+                        <input v-model="newProj.title" type="text" required placeholder="例: 新曲「ハルノウタ」" class="w-full border-gray-200 rounded-xl p-2.5 focus:border-gray-900 text-xs">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block font-bold text-gray-700">全体締め切り日</label>
+                            <input v-model="newProj.dueDate" type="date" required class="w-full border-gray-200 rounded-xl p-2.5 focus:border-gray-900 text-xs">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block font-bold text-gray-700">初期ステータス</label>
+                            <select v-model="newProj.status" class="w-full border-gray-200 rounded-xl p-2.5 focus:border-gray-900 text-xs">
+                                <option value="進行中">進行中</option>
+                                <option value="要リテイク">要リテイク</option>
+                                <option value="保留">保留</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-100 pt-3 space-y-3">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">🤖 Discord 連携チャンネル設定</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="block font-bold text-gray-600">活動メインチャンネル名</label>
+                                <input v-model="newProj.discordMainChannel" type="text" placeholder="mix-room" class="w-full border-gray-200 rounded-xl p-2.5 focus:border-gray-900 text-xs font-mono">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block font-bold text-gray-600">通知先チャンネル名</label>
+                                <input v-model="newProj.discordNotifyChannel" type="text" placeholder="progress-alert" class="w-full border-gray-200 rounded-xl p-2.5 focus:border-gray-900 text-xs font-mono">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 flex justify-end space-x-2 border-t border-gray-50">
+                        <button type="button" @click="isModalOpen = false" class="px-3 py-2 text-gray-500 hover:bg-gray-50 rounded-xl font-medium">キャンセル</button>
+                        <button type="submit" class="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 rounded-xl font-bold">プロジェクト起票</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <footer class="bg-white border-t border-gray-200 text-center py-4 mt-auto">
+            <p class="text-[11px] text-gray-400">&copy; 2026 SoundProgress. クリーン＆シンプルな日本のクリエイターワークスペース.</p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentCommunityName: 'ボカロPサークルX',
+                    isModalOpen: false,
+                    searchQuery: '',
+                    selectedStatusFilter: 'すべて',
+                    
+                    mockUser: {
+                        name: 'タロウ_ボカロP',
+                        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                        role: 'admin'
+                    },
+
+                    statusTabs: [
+                        { label: 'すべて', value: 'すべて' },
+                        { label: '進行中', value: '進行中' },
+                        { label: '要リテイク', value: '要リテイク' },
+                        { label: '完了', value: '完了' },
+                        { label: '保留', value: '保留' }
+                    ],
+
+                    // 🌟 プロジェクトデータモック（必要なディテールを完全実装）
+                    mockProjects: [
+                        { id: 1, title: '新曲「ハルノウタ」アルバムリード曲', thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80', status: '進行中', completedTasks: 2, totalTasks: 6, remainingDays: 41, memberCount: 4, discordMainChannel: 'ハルノウタ-制作', discordNotifyChannel: '進捗通知' },
+                        { id: 2, title: '夏コミ用EDMインスト音源（Ver2.1）', thumbnail: '', status: '要リテイク', completedTasks: 4, totalTasks: 5, remainingDays: 3, memberCount: 2, discordMainChannel: 'インスト部屋', discordNotifyChannel: 'mix通知アラート' },
+                        { id: 3, title: 'ボカロコンピ寄稿曲「レイニーナイト」', thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=400&q=80', status: '完了', completedTasks: 7, totalTasks: 7, remainingDays: 0, memberCount: 5, discordMainChannel: 'レイニーナイト', discordNotifyChannel: 'ログ保存' },
+                        { id: 4, title: '秋のM3用ミニアルバム企画（全体バッファ）', thumbnail: '', status: '保留', completedTasks: 0, totalTasks: 4, remainingDays: 112, memberCount: 6, discordMainChannel: '秋企画マスタ', discordNotifyChannel: '全体アナウンス' }
+                    ],
+
+                    // 新規追加用の一時フォーム
+                    newProj: {
+                        title: '',
+                        dueDate: '',
+                        status: '進行中',
+                        discordMainChannel: 'general',
+                        discordNotifyChannel: 'progress'
+                    }
+                }
+            },
+            computed: {
+                // サマリーカウンターの動的集計
+                summaryCounts() {
+                    return {
+                        processing: this.mockProjects.filter(p => p.status === '進行中').length,
+                        retake: this.mockProjects.filter(p => p.status === '要リテイク').length,
+                        completed: this.mockProjects.filter(p => p.status === '完了').length,
+                        urgent: this.mockProjects.filter(p => p.remainingDays <= 7 && p.status !== '完了').length
+                    }
+                },
+                // 検索 ＆ ステータスフィルタによるリアルタイム絞り込み
+                filteredProjects() {
+                    return this.mockProjects.filter(proj => {
+                        const matchesSearch = proj.title.toLowerCase().includes(this.searchQuery.toLowerCase());
+                        const matchesStatus = this.selectedStatusFilter === 'すべて' || proj.status === this.selectedStatusFilter;
+                        return matchesSearch && matchesStatus;
+                    });
+                }
+            },
+            methods: {
+                getStatusClass(status) {
+                    switch (status) {
+                        case '進行中': return 'bg-blue-50 text-blue-700 border-blue-100';
+                        case '要リテイク': return 'bg-amber-50 text-amber-700 border-amber-200';
+                        case '完了': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                        case '保留': return 'bg-gray-100 text-gray-600 border-gray-200';
+                        default: return 'bg-gray-50 text-gray-600 border-gray-200';
+                    }
+                },
+                createNewProject() {
+                    // 日付から残り日数を大まかに計算
+                    const today = new Date();
+                    const targetDate = new Date(this.newProj.dueDate);
+                    const diffTime = Math.max(0, targetDate - today);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    this.mockProjects.unshift({
+                        id: Date.now(),
+                        title: this.newProj.title,
+                        thumbnail: '', // 新規は初期No Image
+                        status: this.newProj.status,
+                        completedTasks: 0,
+                        totalTasks: 6, // デフォルトテンプレート想定
+                        remainingDays: diffDays || 30,
+                        memberCount: 1, // 起票者
+                        discordMainChannel: this.newProj.discordMainChannel || 'general',
+                        discordNotifyChannel: this.newProj.discordNotifyChannel || 'progress'
+                    });
+
+                    alert(`✅ プロジェクト「${this.newProj.title}」を正常に起票しました。\nDiscordの #${this.newProj.discordNotifyChannel} チャンネルへBot経由で初期連携通知を送信しました。`);
+                    
+                    // フォームクリア
+                    this.isModalOpen = false;
+                    this.newProj = { title: '', dueDate: '', status: '進行中', discordMainChannel: 'general', discordNotifyChannel: 'progress' };
+                },
+                enterProject(proj) {
+                    alert(`🔗 プロジェクト詳細へ遷移します。\n楽曲名: ${proj.title}\n(要件定義書の【画面5. プロジェクト詳細画面】へリロードなしでバインドされます)`);
+                },
+                logout() {
+                    alert('ログアウト処理（LPへ戻る想定）');
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
