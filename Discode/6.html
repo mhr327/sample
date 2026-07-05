@@ -1,1 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - ホーム</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+            letter-spacing: -0.01em;
+        }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50/50 text-gray-900 min-h-screen flex flex-col antialiased">
 
+    <div id="app" class="flex flex-col min-h-screen" v-cloak>
+        
+        <nav class="bg-white border-b border-gray-100 sticky top-0 z-40 backdrop-blur-md bg-white/90">
+            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+                <a href="#" @click.prevent="currentPage = 'home'" class="flex items-center space-x-3">
+                    <div class="bg-indigo-600 text-white p-2 rounded-xl">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <span class="self-center text-base font-bold tracking-tight text-gray-900">SoundProgress</span>
+                </a>
+                
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-3 bg-gray-100 p-1 pe-3 rounded-full border border-gray-200/60">
+                        <img class="w-6 h-6 rounded-full" :src="mockUser.avatar" :alt="mockUser.name">
+                        <span class="text-xs font-medium text-gray-700">{{ mockUser.name }}</span>
+                        <button @click="logout" class="text-[10px] text-gray-400 hover:text-red-600 font-medium transition-colors border-l border-gray-200 ps-2">ログアウト</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex-grow w-full max-w-screen-xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
+            
+            <aside class="w-full md:w-60 shrink-0 space-y-6等">
+                <div class="p-3 bg-white border border-gray-200/60 rounded-xl shadow-sm flex items-center justify-between">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-7 h-7 bg-gray-900 text-white rounded-lg flex items-center justify-center font-bold text-xs">
+                            {{ currentCommunity.name.substring(0, 1) }}
+                        </div>
+                        <div class="truncate">
+                            <h2 class="text-xs font-bold text-gray-900 truncate">{{ currentCommunity.name }}</h2>
+                            <p class="text-[9px] font-mono text-gray-400">ID: {{ currentCommunity.discordServerId.substring(0, 8) }}...</p>
+                        </div>
+                    </div>
+                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"></path></svg>
+                </div>
+
+                <nav class="space-y-1">
+                    <a href="#" class="flex items-center space-x-3 px-3 py-2 text-xs font-bold text-indigo-600 bg-indigo-50/60 rounded-lg border border-indigo-100/40">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"></path></svg>
+                        <span>進行中プロジェクト</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"></path></svg>
+                        <span>サークルWiki</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.43l-1.003.767c-.3.23-.452.617-.432.998.002.04.004.08.004.122 0 .04-.002.08-.004.122-.02.38.132.768.432.998l1.003.767a1.125 1.125 0 01.26 1.43l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.216-.456c-.356-.133-.751-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.43l1.004-.767c.301-.23.452-.617.432-.998-.001-.04-.003-.08-.003-.122 0-.04.002-.08.003-.122.02-.38-.132-.768-.432-.998L2.243 11.5a1.125 1.125 0 01-.26-1.43L3.28 7.824a1.125 1.125 0 011.37-.49l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <span>Discord連携・Bot設定</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <main class="flex-grow space-y-6">
+                
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-gray-100 gap-4">
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900 tracking-tight">進行中プロジェクト</h1>
+                        <p class="text-xs text-gray-400 mt-0.5">このコミュニティで動いているすべての音源制作案件です。</p>
+                    </div>
+                    <div>
+                        <button type="button" class="text-white bg-gray-900 hover:bg-gray-800 font-medium rounded-xl text-xs px-3.5 py-2.5 transition-colors shadow-sm">
+                            新規プロジェクトを追加
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200/60 rounded-xl overflow-hidden shadow-sm">
+                    <div class="divide-y divide-gray-100">
+                        
+                        <div class="p-4 sm:p-5 hover:bg-gray-50/50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="space-y-1.5 min-w-0 flex-grow">
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100/70 shrink-0">
+                                        作詞・作曲中
+                                    </span>
+                                    <h3 class="text-sm font-bold text-gray-900 truncate">新曲「ハルノウタ」アルバムリード曲</h3>
+                                </div>
+                                <div class="flex items-center space-x-3 text-[11px] text-gray-400">
+                                    <span class="flex items-center">
+                                        <span class="w-1.5 h-1.5 bg-gray-400 rounded-full me-1.5"></span>
+                                        担当: サトウ（ボカロP）
+                                    </span>
+                                    <span>•</span>
+                                    <span>更新: 25分前</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between sm:justify-end gap-6 shrink-0 border-t sm:border-0 pt-2 sm:pt-0 border-gray-50">
+                                <div class="text-left sm:text-right">
+                                    <p class="text-[10px] text-gray-400 font-medium">締切日</p>
+                                    <p class="text-xs font-semibold text-gray-700">2026.07.20</p>
+                                </div>
+                                <svg class="w-4 h-4 text-gray-300 hidden sm:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path></svg>
+                            </div>
+                        </div>
+
+                        <div class="p-4 sm:p-5 hover:bg-gray-50/50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="space-y-1.5 min-w-0 flex-grow">
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-purple-50 text-purple-700 text-[10px] font-medium px-2 py-0.5 rounded border border-purple-100/70 shrink-0">
+                                        MIX・リテイク確認
+                                    </span>
+                                    <h3 class="text-sm font-bold text-gray-900 truncate">夏イベント用インスト音源（Ver2.1）</h3>
+                                </div>
+                                <div class="flex items-center space-x-3 text-[11px] text-gray-400">
+                                    <span class="flex items-center">
+                                        <span class="w-1.5 h-1.5 bg-gray-400 rounded-full me-1.5"></span>
+                                        担当: スズキ（エンジニア）
+                                    </span>
+                                    <span>•</span>
+                                    <span>更新: 2時間前</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between sm:justify-end gap-6 shrink-0 border-t sm:border-0 pt-2 sm:pt-0 border-gray-50">
+                                <div class="text-left sm:text-right">
+                                    <p class="text-[10px] text-gray-400 font-medium">締切日</p>
+                                    <p class="text-xs font-semibold text-amber-600">2026.07.08 (残り3日)</p>
+                                </div>
+                                <svg class="w-4 h-4 text-gray-300 hidden sm:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path></svg>
+                            </div>
+                        </div>
+
+                        <div class="p-4 sm:p-5 hover:bg-gray-50/50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="space-y-1.5 min-w-0 flex-grow">
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-gray-100 text-gray-600 text-[10px] font-medium px-2 py-0.5 rounded border border-gray-200/60 shrink-0">
+                                        動画・イラスト発注
+                                    </span>
+                                    <h3 class="text-sm font-bold text-gray-900 truncate">MV用イラスト・背景アセット群</h3>
+                                </div>
+                                <div class="flex items-center space-x-3 text-[11px] text-gray-400">
+                                    <span class="flex items-center">
+                                        <span class="w-1.5 h-1.5 bg-gray-400 rounded-full me-1.5"></span>
+                                        担当: タナカ（イラストレーター）
+                                    </span>
+                                    <span>•</span>
+                                    <span>更新: 昨日</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between sm:justify-end gap-6 shrink-0 border-t sm:border-0 pt-2 sm:pt-0 border-gray-50">
+                                <div class="text-left sm:text-right">
+                                    <p class="text-[10px] text-gray-400 font-medium">締切日</p>
+                                    <p class="text-xs font-semibold text-gray-700">2026.08.01</p>
+                                </div>
+                                <svg class="w-4 h-4 text-gray-300 hidden sm:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path></svg>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h2 class="text-xs font-bold tracking-wider text-gray-400 uppercase">BOT ACTIVITY LOG (直近3件)</h2>
+                    <div class="bg-white border border-gray-200/60 rounded-xl p-4 space-y-2.5 shadow-sm text-xs text-gray-600">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[10px] font-mono text-gray-400">15:42</span>
+                            <span class="bg-indigo-50 text-indigo-600 font-bold px-1.5 py-0.2 rounded text-[9px]">BOT</span>
+                            <p class="truncate">📢 <span class="font-bold text-gray-800">#mix-progress</span> にて「ハルノウタ_v2.wav」の提出が通知されました。</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[10px] font-mono text-gray-400">12:10</span>
+                            <span class="bg-indigo-50 text-indigo-600 font-bold px-1.5 py-0.2 rounded text-[9px]">BOT</span>
+                            <p class="truncate">⏰ <span class="font-bold text-gray-800">スズキ_エンジニア</span> への締切3日前リマインドを自動送信しました。</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[10px] font-mono text-gray-400">昨日</span>
+                            <span class="bg-indigo-50 text-indigo-600 font-bold px-1.5 py-0.2 rounded text-[9px]">BOT</span>
+                            <p class="truncate">🔗 新しいWikiページ「2026年夏コミ規約」の同期を完了しました。</p>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+        <footer class="text-center py-8 border-t border-gray-100 bg-white">
+            <p class="text-[10px] font-medium text-gray-400 tracking-wide">&copy; 2026 SoundProgress. Beautiful Silent Dashboard.</p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentPage: 'home',
+                    mockUser: {
+                        name: 'タロウ_ボカロP',
+                        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                        role: 'admin'
+                    },
+                    currentCommunity: { 
+                        id: 1, 
+                        name: 'ボカロPサークルX', 
+                        discordServerId: '987654321012345678'
+                    }
+                }
+            },
+            methods: {
+                logout() {
+                    alert('ログアウト処理（LP等へ戻る想定）。プロトタイプ上での表示をリセットします。');
+                    // 実際はAuthリダイレクト
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
