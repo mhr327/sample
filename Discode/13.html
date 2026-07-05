@@ -1,1 +1,455 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - コミュニティホーム</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Noto Sans JP', sans-serif;
+            letter-spacing: -0.01em;
+        }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
 
+    <div id="app" class="flex flex-col min-h-screen" v-cloak>
+        
+        <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+                <a href="#" @click.prevent="currentView = 'main'" class="flex items-center space-x-2">
+                    <div class="bg-gray-900 text-white p-1.5 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                        </svg>
+                    </div>
+                    <span class="self-center text-lg font-bold tracking-tight text-gray-900">SoundProgress</span>
+                </a>
+                
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs text-gray-500 font-medium bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200">
+                        {{ mockUser.role === 'admin' ? '管理者' : '一般メンバー' }}
+                    </span>
+                    <img class="w-8 h-8 rounded-full border border-gray-200" :src="mockUser.avatar" :alt="mockUser.name">
+                    <button @click="logout" class="text-xs text-gray-500 hover:text-red-600 transition-colors">ログアウト</button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-grow w-full max-w-screen-xl mx-auto px-4 py-8 space-y-8">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <div class="flex items-center space-x-2 text-xs text-gray-400 mb-1">
+                        <span>コミュニティ一覧</span>
+                        <span>/</span>
+                        <span class="text-gray-600 font-medium">{{ currentCommunityName }}</span>
+                    </div>
+                    <h1 class="text-xl font-bold tracking-tight text-gray-900">コミュニティダッシュボード</h1>
+                </div>
+                <div v-if="mockUser.role === 'admin'">
+                    <button @click="isModalOpen = true" type="button" class="text-white bg-gray-900 hover:bg-gray-800 font-medium rounded-xl text-xs px-4 py-2.5 inline-flex items-center transition-colors shadow-sm">
+                        <svg class="w-3.5 h-3.5 me-1.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                        新規プロジェクトを作成
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                    <p class="text-[11px] font-medium text-gray-400">進行中プロジェクト</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ summaryCounts.processing }} <span class="text-xs font-normal text-gray-400">件</span></p>
+                </div>
+                <div class="p-4 bg-white border border-gray-200 rounded-xl shadow-sm border-l-4 border-l-amber-500">
+                    <p class="text-[11px] font-medium text-amber-600">要リテイク工程</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ summaryCounts.retake }} <span class="text-xs font-normal text-gray-400">件</span></p>
+                </div>
+                <div class="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                    <p class="text-[11px] font-medium text-red-500">直近の締切 (7日以内)</p>
+                    <p class="text-2xl font-bold text-red-600 mt-1">{{ summaryCounts.urgent }} <span class="text-xs font-normal text-gray-400">件</span></p>
+                </div>
+                <div class="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                    <p class="text-[11px] font-medium text-gray-400">完了アセット</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ summaryCounts.completed }} <span class="text-xs font-normal text-gray-400">件</span></p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex space-x-1 overflow-x-auto pb-1 md:pb-0">
+                        <button v-for="status in statusTabs" :key="status.value" @click="selectedStatusFilter = status.value" :class="selectedStatusFilter === status.value ? 'bg-gray-900 text-white font-bold' : 'text-gray-600 hover:bg-gray-50 border-gray-200'" class="text-xs px-3 py-1.5 rounded-lg border transition-all whitespace-nowrap">
+                            {{ status.label }}
+                        </button>
+                    </div>
+                    <div class="relative w-full md:w-64 shrink-0">
+                        <input v-model="searchQuery" type="text" placeholder="プロジェクト名で検索..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="proj in filteredProjects" :key="proj.id" class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden hover:border-gray-400 transition-all flex flex-col justify-between group cursor-pointer" @click="enterProject(proj)">
+                        <div>
+                            <div class="h-36 bg-gray-100 relative overflow-hidden flex items-center justify-center border-b border-gray-100">
+                                <img v-if="proj.thumbnail" :src="proj.thumbnail" class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300">
+                                <div v-else class="text-center p-4">
+                                    <svg class="w-6 h-6 text-gray-300 mx-auto mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"></path></svg>
+                                    <span class="text-[10px] text-gray-400 font-medium">No Image (アセット未提出)</span>
+                                </div>
+                                <span :class="getStatusClass(proj.status)" class="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm border">
+                                    {{ proj.status }}
+                                </span>
+                            </div>
+                            <div class="p-4 space-y-4">
+                                <div>
+                                    <h3 class="text-sm font-bold text-gray-900 leading-snug tracking-tight group-hover:text-indigo-600 transition-colors truncate">
+                                        {{ proj.title }}
+                                    </h3>
+                                    <div class="flex items-center space-x-2 mt-1.5 text-[10px] text-gray-400 font-mono">
+                                        <span class="bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded">💬 #{{ proj.discordMainChannel }}</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <div class="flex justify-between items-center text-[11px]">
+                                        <span class="text-gray-400 font-medium">工程進行度</span>
+                                        <span class="text-gray-900 font-mono font-bold">{{ proj.completedTasks }}/{{ proj.totalTasks }} Tasks</span>
+                                    </div>
+                                    <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                        <div class="bg-gray-900 h-1.5 rounded-full transition-all duration-500" :style="{ width: (proj.completedTasks / proj.totalTasks * 100) + '%' }"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-[11px]">
+                            <span :class="proj.remainingDays <= 7 && proj.status !== '完了' ? 'text-red-600 font-bold' : 'text-gray-500' " class="font-mono">
+                                {{ proj.status === '完了' ? '制作完了' : '残り ' + proj.remainingDays + ' 日' }}
+                            </span>
+                            <span class="font-bold text-gray-700">{{ proj.memberCount }} 名参加</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-8 space-y-4">
+                <div>
+                    <h2 class="text-base font-bold text-gray-900 tracking-tight">🏛️ コミュニティ共通スペース</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">サークル・ゼミ全体で横断して利用する共有機能群です。</p>
+                </div>
+
+                <div class="flex space-x-1 border-b border-gray-200 overflow-x-auto pb-px">
+                    <button v-for="menu in communityMenus" :key="menu.id" @click="currentCommunityMenu = menu.id" :class="currentCommunityMenu === menu.id ? 'border-gray-900 text-gray-900 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700 font-medium'" class="whitespace-nowrap px-4 py-2 border-b-2 text-xs transition-all">
+                        {{ menu.name }}
+                    </button>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm min-h-64">
+                    
+                    <div v-if="currentCommunityMenu === 'talk'" class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">全体雑談・総合ロビーチャット</h3>
+                            <span class="text-[10px] text-indigo-500 font-mono">#Discordのメインロビーと同期中</span>
+                        </div>
+                        <div class="border border-gray-100 rounded-xl p-3 bg-gray-50 space-y-3 h-48 overflow-y-auto text-xs">
+                            <div v-for="chat in communityData.talks" class="space-y-1">
+                                <div class="flex items-center space-x-2 text-gray-400 text-[10px]">
+                                    <span class="font-bold text-gray-700">{{ chat.user }}</span>
+                                    <span>• {{ chat.time }}</span>
+                                </div>
+                                <p class="bg-white p-2 rounded-lg border border-gray-200 inline-block max-w-md">{{ chat.message }}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="全体向けメッセージを入力..." class="flex-grow border-gray-200 rounded-xl text-xs p-2.5 bg-gray-50 focus:bg-white transition-all">
+                            <button @click="alert('メッセージ送信')" class="bg-gray-900 text-white font-bold text-xs px-4 py-2 rounded-xl">送信</button>
+                        </div>
+                    </div>
+
+                    <div v-if="currentCommunityMenu === 'wiki'" class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+                        <div class="md:col-span-1 border-r border-gray-100 pr-2 space-y-1">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">📄 ナレッジツリー</p>
+                            <div class="bg-gray-50 p-2 rounded-lg font-medium text-gray-700 cursor-pointer">🏠 サークル全体運営規約</div>
+                            <div class="pl-3 text-gray-500 cursor-pointer hover:text-black">├ 共有ドライブ構成のルール</div>
+                            <div class="pl-3 text-gray-500 cursor-pointer hover:text-black">└ 機材・プラグイン資産リスト</div>
+                        </div>
+                        <div class="md:col-span-3 space-y-3">
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                                <h3 class="font-bold text-sm text-gray-900">🏠 サークル全体運営規約</h3>
+                                <button @click="alert('Wiki編集')" class="text-[10px] text-gray-500 border px-2 py-0.5 rounded">編集</button>
+                            </div>
+                            <div class="bg-gray-50/50 p-4 rounded-xl font-mono leading-relaxed text-gray-700 whitespace-pre-wrap">1. 提出締め切りは、各プロジェクト目標日の「前日23:59」を絶対厳守とします。&#13;2. リテイクが発生した場合はDiscordのBot通知を確認し、速やかにレスポンスをお願いします。&#13;3. 共有素材はすべてSoundProgressの共有ファイルストレージへ集約します。</div>
+                        </div>
+                    </div>
+
+                    <div v-if="currentCommunityMenu === 'board'" class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">サークル全体お知らせ</h3>
+                            <button @click="alert('新規アナウンス投稿')" class="text-[11px] border border-gray-300 hover:bg-gray-50 px-2 py-1 rounded-lg font-medium">新規投稿</button>
+                        </div>
+                        <div class="space-y-3">
+                            <div v-for="b in communityData.boards" :key="b.id" :class="b.isPinned ? 'border-amber-200 bg-amber-50/20' : 'border-gray-100'" class="p-4 border rounded-xl text-xs relative">
+                                <span v-if="b.isPinned" class="absolute top-3 right-3 text-[10px] bg-amber-100 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded font-bold">📌 ピン留め</span>
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-sm text-gray-900">{{ b.title }}</h4>
+                                    <p class="text-gray-600 leading-relaxed whitespace-pre-wrap">{{ b.content }}</p>
+                                    <div class="pt-2 text-[10px] text-gray-400 flex items-center space-x-2">
+                                        <span class="font-bold text-gray-500">作成者: {{ b.author }}</span>
+                                        <span>|</span>
+                                        <span>作成日: {{ b.date }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="currentCommunityMenu === 'schedule'" class="space-y-4">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">年間・月間全体マイルストーン</h3>
+                        <div class="space-y-2">
+                            <div v-for="sch in communityData.schedules" :key="sch.id" class="p-3 border border-gray-100 rounded-xl bg-gray-50/50 flex justify-between items-center text-xs">
+                                <div class="space-y-0.5">
+                                    <h4 class="font-bold text-gray-800">{{ sch.title }}</h4>
+                                    <p class="text-[10px] font-mono text-gray-400">イベント日付: {{ sch.date }}</p>
+                                </div>
+                                <span :class="sch.daysLeft <= 10 ? 'bg-red-50 text-red-600 border-red-100 font-bold' : 'bg-white text-gray-600 border-gray-200'" class="px-2.5 py-1 border rounded-lg font-mono text-[11px]">
+                                    当日の日付まで あと {{ sch.daysLeft }} 日
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="currentCommunityMenu === 'poll'" class="space-y-4">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">サークル内意思決定・アンケート</h3>
+                        <div class="border border-gray-200 rounded-xl p-4 bg-gray-50/30 space-y-3 text-xs max-w-md">
+                            <div class="space-y-0.5">
+                                <span class="bg-blue-50 text-blue-700 border border-blue-100 text-[9px] font-bold px-1.5 py-0.5 rounded">回答受付中</span>
+                                <h4 class="font-bold text-gray-900 text-sm mt-1">次回のサークル総会の開催方法について</h4>
+                            </div>
+                            <div class="space-y-2 pt-2">
+                                <button @click="alert('オンラインに投票')" class="w-full bg-white border border-gray-200 p-2.5 rounded-xl text-left hover:border-gray-400 transition-all flex justify-between">
+                                    <span>Discordオンライン通話</span>
+                                    <span class="font-bold text-gray-500">8 票 (80%)</span>
+                                </button>
+                                <button @click="alert('オフラインに投票')" class="w-full bg-white border border-gray-200 p-2.5 rounded-xl text-left hover:border-gray-400 transition-all flex justify-between">
+                                    <span>都内スタジオでの対面集合</span>
+                                    <span class="font-bold text-gray-500">2 票 (20%)</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="currentCommunityMenu === 'files'" class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">全体共通ストレージ（ロゴアセット、規約等）</h3>
+                            <button @click="alert('ファイルアップロード')" class="text-[11px] bg-gray-900 text-white px-2.5 py-1 rounded-lg font-bold">ファイルをアップロード</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                            <div v-for="file in communityData.sharedFiles" :key="file.name" class="p-3 border border-gray-100 rounded-xl bg-white shadow-sm flex justify-between items-center">
+                                <div class="space-y-0.5 truncate">
+                                    <p class="font-bold text-gray-800 truncate">{{ file.name }}</p>
+                                    <p class="text-[10px] text-gray-400 uppercase font-mono">{{ file.size }}</p>
+                                </div>
+                                <button @click="alert('ダウンロード')" class="text-[10px] text-gray-500 hover:text-gray-900 border px-2 py-1 rounded-md">ダウンロード</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="currentCommunityMenu === 'members'" class="space-y-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-2 gap-2">
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">所属クリエイター一覧</h3>
+                            <div v-if="mockUser.role === 'admin'" class="flex gap-2">
+                                <input v-model="inviteUserId" type="text" placeholder="DiscordユーザーID..." class="border-gray-200 rounded-xl text-xs px-2.5 py-1.5 w-44 font-mono">
+                                <button @click="inviteCommunityMember" class="bg-gray-900 text-white font-bold text-xs px-3 py-1.5 rounded-xl shrink-0">コミュニティへ招待</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
+                            <div v-for="m in communityData.members" :key="m.name" class="p-2.5 border border-gray-100 rounded-xl bg-gray-50/50 flex items-center space-x-2.5">
+                                <div class="w-7 h-7 rounded-full bg-gray-300 font-bold flex items-center justify-center text-gray-600 text-[10px]">
+                                    {{ m.name.substring(0,2) }}
+                                </div>
+                                <div class="truncate">
+                                    <p class="font-bold text-gray-900 truncate">{{ m.name }}</p>
+                                    <p class="text-[9px] text-gray-400 font-medium">{{ m.role }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+
+        <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div @click="isModalOpen = false" class="fixed inset-0 bg-gray-900/30 backdrop-blur-sm"></div>
+            <div class="bg-white rounded-2xl border border-gray-200 max-w-md w-full p-6 shadow-xl relative z-10 space-y-4">
+                <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                    <h3 class="text-sm font-bold text-gray-900">新規プロジェクトの追加</h3>
+                    <button @click="isModalOpen = false" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <form @submit.prevent="createNewProject" class="space-y-4 text-xs">
+                    <div class="space-y-1">
+                        <label class="block font-bold text-gray-700">プロジェクト名（楽曲タイトル）</label>
+                        <input v-model="newProj.title" type="text" required class="w-full border-gray-200 rounded-xl p-2.5 text-xs">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block font-bold text-gray-700">全体締め切り日</label>
+                            <input v-model="newProj.dueDate" type="date" required class="w-full border-gray-200 rounded-xl p-2.5 text-xs">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block font-bold text-gray-700">初期ステータス</label>
+                            <select v-model="newProj.status" class="w-full border-gray-200 rounded-xl p-2.5 text-xs">
+                                <option value="進行中">進行中</option>
+                                <option value="要リテイク">要リテイク</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="pt-2 flex justify-end space-x-2 border-t border-gray-50">
+                        <button type="button" @click="isModalOpen = false" class="px-3 py-2 text-gray-500 rounded-xl">キャンセル</button>
+                        <button type="submit" class="px-4 py-2 bg-gray-900 text-white rounded-xl font-bold">プロジェクト起票</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <footer class="bg-white border-t border-gray-200 text-center py-4 mt-auto">
+            <p class="text-[11px] text-gray-400">&copy; 2026 SoundProgress. クリーン＆シンプルな日本のクリエイターワークスペース.</p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentCommunityName: 'ボカロPサークルX',
+                    isModalOpen: false,
+                    searchQuery: '',
+                    selectedStatusFilter: 'すべて',
+                    currentCommunityMenu: 'talk', // 初期共通タブはトーク
+                    inviteUserId: '',
+                    
+                    mockUser: {
+                        name: 'タロウ_ボカロP',
+                        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                        role: 'admin'
+                    },
+
+                    statusTabs: [
+                        { label: 'すべて', value: 'すべて' },
+                        { label: '進行中', value: '進行中' },
+                        { label: '要リテイク', value: '要リテイク' },
+                        { label: '完了', value: '完了' }
+                    ],
+
+                    communityMenus: [
+                        { id: 'talk', name: '💬 トーク' },
+                        { id: 'wiki', name: '📚 Wiki' },
+                        { id: 'board', name: '📌 掲示板' },
+                        { id: 'schedule', name: '📅 スケジュール' },
+                        { id: 'poll', name: '📊 アンケート' },
+                        { id: 'files', name: '📁 ファイル共有' },
+                        { id: 'members', name: '👥 メンバー一覧' }
+                    ],
+
+                    mockProjects: [
+                        { id: 1, title: '新曲「ハルノウタ」アルバムリード曲', thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80', status: '進行中', completedTasks: 2, totalTasks: 6, remainingDays: 41, memberCount: 4, discordMainChannel: 'ハルノウタ-制作' },
+                        { id: 2, title: '夏コミ用EDMインスト音源（Ver2.1）', thumbnail: '', status: '要リテイク', completedTasks: 4, totalTasks: 5, remainingDays: 3, memberCount: 2, discordMainChannel: 'インスト部屋' },
+                        { id: 3, title: 'ボカロコンピ寄稿曲「レイニーナイト」', thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=400&q=80', status: '完了', completedTasks: 7, totalTasks: 7, remainingDays: 0, memberCount: 5, discordMainChannel: 'レイニーナイト' }
+                    ],
+
+                    // 🏛️ コミュニティ全体の共通データオブジェクト
+                    communityData: {
+                        talks: [
+                            { user: 'サトウ（ボカロP）', time: '10:05', message: 'おはようございます！今月の進捗会って来週の金曜でしたっけ？' },
+                            { user: 'タロウ_ボカロP', time: '10:12', message: 'そうです！詳細はスケジュールとアンケートに入って設定してあります！' }
+                        ],
+                        boards: [
+                            { id: 1, title: '夏コミカタログ用サークルロゴアセットについて', content: 'サークルカット用のロゴの高解像度透過PNGファイルをファイル共有にアップロードしました。各自クロスフェード等で使ってください。', author: 'ワタナベ（映像）', date: '2026-07-02', isPinned: true }
+                        ],
+                        schedules: [
+                            { id: 1, title: '夏コミ(C108) 新刊マスターアップ', date: '2026-08-01', daysLeft: 27 },
+                            { id: 2, title: '秋のM3サークル参加申し込み締め切り', date: '2026-08-20', daysLeft: 46 }
+                        ],
+                        sharedFiles: [
+                            { name: 'サークル共通ロゴ_透過2026.png', size: '2.4 MB' },
+                            { name: 'SoundProgress運用手引き_v1.pdf', size: '840 KB' }
+                        ],
+                        members: [
+                            { name: 'タロウ_ボカロP', role: '管理者' },
+                            { name: 'サトウ（ボカロP）', role: '一般メンバー' },
+                            { name: 'スズキ（エンジニア）', role: '一般メンバー' },
+                            { name: 'ワタナベ（映像）', role: '一般メンバー' }
+                        ]
+                    },
+
+                    newProj: { title: '', dueDate: '', status: '進行中' }
+                }
+            },
+            computed: {
+                summaryCounts() {
+                    return {
+                        processing: this.mockProjects.filter(p => p.status === '進行中').length,
+                        retake: this.mockProjects.filter(p => p.status === '要リテイク').length,
+                        completed: this.mockProjects.filter(p => p.status === '完了').length,
+                        urgent: this.mockProjects.filter(p => p.remainingDays <= 7 && p.status !== '完了').length
+                    }
+                },
+                filteredProjects() {
+                    return this.mockProjects.filter(proj => {
+                        const matchesSearch = proj.title.toLowerCase().includes(this.searchQuery.toLowerCase());
+                        const matchesStatus = this.selectedStatusFilter === 'すべて' || proj.status === this.selectedStatusFilter;
+                        return matchesSearch && matchesStatus;
+                    });
+                }
+            },
+            methods: {
+                getStatusClass(status) {
+                    switch (status) {
+                        case '進行中': return 'bg-blue-50 text-blue-700 border-blue-100';
+                        case '要リテイク': return 'bg-amber-50 text-amber-700 border-amber-200';
+                        case '完了': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                        default: return 'bg-gray-50 text-gray-600';
+                    }
+                },
+                createNewProject() {
+                    this.mockProjects.unshift({
+                        id: Date.now(),
+                        title: this.newProj.title,
+                        thumbnail: '',
+                        status: this.newProj.status,
+                        completedTasks: 0,
+                        totalTasks: 5,
+                        remainingDays: 30,
+                        memberCount: 1,
+                        discordMainChannel: 'general'
+                    });
+                    this.isModalOpen = false;
+                    this.newProj = { title: '', dueDate: '', status: '進行中' };
+                },
+                inviteCommunityMember() {
+                    if(!this.inviteUserId.trim()) return;
+                    this.communityData.members.push({
+                        name: this.inviteUserId,
+                        role: '一般メンバー'
+                    });
+                    alert(`👥 Discordユーザー「${this.inviteUserId}」をこのコミュニティに招待・追加しました。`);
+                    this.inviteUserId = '';
+                },
+                enterProject(proj) {
+                    alert(`🔗 プロジェクト「${proj.title}」の内部詳細画面へ進みます。`);
+                },
+                logout() { alert('ログアウトします'); }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
