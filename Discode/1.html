@@ -1,1 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音進管理システム - SoundProgress</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+    </style>
+    <script>
+        // Tailwindのダークモードを強制有効化
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
 
+    <div id="app" class="flex flex-col min-h-screen">
+        <header class="bg-gray-800/80 backdrop-blur-md border-b border-gray-700 sticky top-0 z-50">
+            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+                <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse">
+                    <svg class="w-8 h-8 text-indigo-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M13 11.5v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4-3v13a1 1 0 0 1-2 0v-13a1 1 0 0 1 2 0Zm-8 6v4a1 1 0 0 1-2 0v-4a1 1 0 0 1 2 0Zm12-2v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 2 0ZM5 11v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 2 0Z"/>
+                    </svg>
+                    <span class="self-center text-xl font-black tracking-wider bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                        SoundProgress
+                    </span>
+                </a>
+                <div class="flex md:order-2">
+                    <button @click="loginWithDiscord" type="button" class="text-white bg-[#5865F2] hover:bg-[#4752C4] focus:ring-4 focus:outline-none focus:ring-indigo-800 font-bold rounded-lg text-sm px-4 py-2 text-center inline-flex items-center transition-colors">
+                        <svg class="w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 21 16">
+                            <path d="M16.942 1.556a16.3 16.3 0 0 0-4.026-1.248 12.5 12.5 0 0 0-.535 1.1 15.019 15.019 0 0 0-4.76 0 11.53 11.53 0 0 0-.54-1.1 16.205 16.205 0 0 0-4.026 1.248C.982 4.778-.139 7.913.014 11.008a16.14 16.14 0 0 0 4.964 2.489c.42-.569.782-1.185 1.085-1.84a10.237 10.237 0 0 1-1.57-.745c.13-.096.26-.197.382-.3a11.533 11.533 0 0 0 10.436 0c.123.103.25.204.382.3a10.4 10.4 0 0 1-1.57.745c.307.65.668 1.27 1.087 1.84a16.214 16.214 0 0 0 4.964-2.49c.193-3.46-.774-6.551-3.08-9.452ZM6.904 9.48c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Zm7.192 0c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Z"/>
+                        </svg>
+                        ログイン
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow flex flex-col justify-center items-center px-4 py-12 max-w-screen-xl mx-auto w-full">
+            
+            <section class="w-full max-w-2xl text-center space-y-8 py-6">
+                <div class="space-y-4">
+                    <span class="bg-indigo-900/60 text-indigo-300 text-xs font-bold px-3 py-1.5 rounded-full border border-indigo-700 uppercase tracking-widest">
+                        Music Production Sync Tool
+                    </span>
+                    <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                        音源制作の進行管理を、<br>
+                        <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">もっと強固に、シンプルに。</span>
+                    </h1>
+                    <p class="text-base sm:text-lg text-gray-400 max-w-lg mx-auto">
+                        ボカロP、歌い手、MIX師、絵師のための、Discord完全同期型・次世代コライトプラットフォーム。
+                    </p>
+                </div>
+
+                <div class="p-8 bg-gray-850 bg-opacity-50 border border-gray-700/60 rounded-2xl shadow-xl max-w-md mx-auto bg-gray-800/40 backdrop-blur-sm">
+                    <h2 class="text-lg font-bold text-gray-200 mb-6">アカウント作成・ログイン</h2>
+                    
+                    <button @click="loginWithDiscord" class="w-full text-white bg-[#5865F2] hover:bg-[#4752C4] focus:ring-4 focus:outline-none focus:ring-indigo-800 font-bold rounded-xl text-md px-5 py-4 text-center inline-flex items-center justify-center transition-all transform hover:scale-[1.01] shadow-lg shadow-indigo-900/30">
+                        <svg class="w-5 h-5 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 21 16">
+                            <path d="M16.942 1.556a16.3 16.3 0 0 0-4.026-1.248 12.5 12.5 0 0 0-.535 1.1 15.019 15.019 0 0 0-4.76 0 11.53 11.53 0 0 0-.54-1.1 16.205 16.205 0 0 0-4.026 1.248C.982 4.778-.139 7.913.014 11.008a16.14 16.14 0 0 0 4.964 2.489c.42-.569.782-1.185 1.085-1.84a10.237 10.237 0 0 1-1.57-.745c.13-.096.26-.197.382-.3a11.533 11.533 0 0 0 10.436 0c.123.103.25.204.382.3a10.4 10.4 0 0 1-1.57.745c.307.65.668 1.27 1.087 1.84a16.214 16.214 0 0 0 4.964-2.49c.193-3.46-.774-6.551-3.08-9.452ZM6.904 9.48c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Zm7.192 0c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Z"/>
+                        </svg>
+                        Discordでログイン
+                    </button>
+
+                    <p class="mt-4 text-xs text-gray-500 leading-relaxed">
+                        パスワード管理やメアド認証は不要です。<br>
+                        Discordアカウントがあれば1秒で開始できます。
+                    </p>
+                </div>
+            </section>
+
+            <section class="w-full mt-16 max-w-4xl">
+                <h3 class="text-center text-sm font-bold tracking-widest text-gray-500 uppercase mb-8">FEATURES</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    
+                    <div class="p-6 bg-gray-800/30 border border-gray-700/50 rounded-xl flex items-start space-x-4">
+                        <div class="p-3 bg-indigo-900/50 text-indigo-400 rounded-lg shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-200 mb-1">大容量ストレージ</h4>
+                            <p class="text-sm text-gray-400">WAV音源やPSD/Clipの重いイラストデータも、プロジェクトごとに最新バージョンを安全に一元管理。</p>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-gray-800/30 border border-gray-700/50 rounded-xl flex items-start space-x-4">
+                        <div class="p-3 bg-purple-900/50 text-purple-400 rounded-lg shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-200 mb-1">波形タイムスタンプ・リテイク</h4>
+                            <p class="text-sm text-gray-400">「01:23のハモリ強すぎ」など、波形を見ながら秒数指定で的確なリテイク指示。もうタイムコードの手打ちは不要です。</p>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-gray-800/30 border border-gray-700/50 rounded-xl flex items-start space-x-4">
+                        <div class="p-3 bg-emerald-900/50 text-emerald-400 rounded-lg shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-200 mb-1">Discord Bot 自動通知</h4>
+                            <p class="text-sm text-gray-400">Web側での提出やリテイク、締め切り3日前リマインドなどを、指定したDiscordチャンネルへBotがメンション付きで即座に同期。</p>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-gray-800/30 border border-gray-700/50 rounded-xl flex items-start space-x-4">
+                        <div class="p-3 bg-amber-900/50 text-amber-400 rounded-lg shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-200 mb-1">ナレッジ共有Wiki</h4>
+                            <p class="text-sm text-gray-400">サークルの規約、エンコード方法、作詞の方向性など、チャットで流れがちな重要テキストをツリー形式で綺麗にストック。</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </main>
+
+        <footer class="bg-gray-950 border-t border-gray-800 text-center py-6 mt-auto">
+            <p class="text-xs text-gray-600">&copy; 2026 SoundProgress. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    // 必要に応じて状態を追加
+                }
+            },
+            methods: {
+                loginWithDiscord() {
+                    // Supabase Auth の Discord ログインを想定したトリガー
+                    alert('Supabase Authを介して、DiscordのOAuth認証へリダイレクトします。');
+                    // 実装例: supabase.auth.signInWithOAuth({ provider: 'discord' })
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
