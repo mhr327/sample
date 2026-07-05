@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - プロジェクト詳細</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Noto Sans JP', sans-serif;
+            letter-spacing: -0.005em;
+        }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased">
+
+    <div id="app" class="flex flex-col min-h-screen" v-cloak>
+        
+        <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+                <a href="#" @click.prevent="backToHome" class="flex items-center space-x-2">
+                    <div class="bg-gray-900 text-white p-1.5 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                        </svg>
+                    </div>
+                    <span class="self-center text-lg font-bold tracking-tight text-gray-900">SoundProgress</span>
+                </a>
+                
+                <div class="flex items-center space-x-3">
+                    <button @click="backToHome" class="text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-xl border border-gray-200 transition-all">
+                        ← プロジェクト一覧へ戻る
+                    </button>
+                    <img class="w-8 h-8 rounded-full border border-gray-200" :src="mockUser.avatar">
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-grow w-full max-w-screen-xl mx-auto px-4 py-6 space-y-6">
+            
+            <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-gray-100 pb-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span :class="getStatusClass(project.status)" class="text-xs font-bold px-2 py-0.5 rounded-md border">
+                                {{ project.status }}
+                            </span>
+                            <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">{{ project.title }}</h1>
+                        </div>
+                        <p class="text-xs font-medium text-gray-500">
+                            <span class="font-mono">📅 締切日: {{ project.dueDate }} （残り {{ project.remainingDays }} 日）</span> | 👥 参加メンバー: {{ project.members.length }} 名
+                        </p>
+                    </div>
+                    
+                    <div class="text-right shrink-0">
+                        <span class="text-xs font-medium text-gray-500">全体進捗</span>
+                        <p class="text-3xl font-bold text-gray-900 font-mono">{{ progressPercentage }}<span class="text-sm font-normal text-gray-400">%</span></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="bg-gray-50 border border-gray-100 rounded-xl p-3 flex flex-col justify-between min-h-36">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">🖼️ 最新イラスト成果物</p>
+                                <h3 class="text-base font-bold text-gray-900 leading-snug truncate max-w-[180px] mt-1">{{ project.latestAssets.image.title }}</h3>
+                            </div>
+                            <span class="bg-green-50 text-green-700 border border-green-100 text-xs font-bold px-1.5 py-0.5 rounded">
+                                {{ project.latestAssets.image.status }}
+                            </span>
+                        </div>
+                        <div class="my-2 h-20 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
+                            <img :src="project.latestAssets.image.url" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-xs font-mono text-gray-500 truncate">File: {{ project.latestAssets.image.filename }}</p>
+                    </div>
+
+                    <div class="lg:col-span-2 bg-gray-950 text-white border border-gray-800 rounded-xl p-4 flex flex-col justify-between min-h-36">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-bold text-indigo-400 uppercase tracking-wider">🎵 最新確定音源</p>
+                                <h3 class="text-base font-bold text-gray-200 leading-snug mt-1">{{ project.latestAssets.audio.title }}</h3>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold px-1.5 py-0.5 rounded">
+                                    {{ project.latestAssets.audio.status }}
+                                </span>
+                                <button @click="alert('一括ZIPダウンロード')" class="text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 px-2.5 py-1 rounded-lg transition-colors font-bold">📦 一括DL</button>
+                            </div>
+                        </div>
+
+                        <div class="my-3 flex items-center space-x-3">
+                            <button @click="alert('音源の再生/一時停止')" class="w-9 h-9 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full flex items-center justify-center shrink-0 shadow-md transition-colors font-bold text-sm">
+                                ▶
+                            </button>
+                            <div class="flex-grow space-y-1">
+                                <div class="h-8 bg-gray-900 border border-gray-800 rounded-lg flex items-end justify-between px-2 relative overflow-hidden">
+                                    <div class="absolute left-0 top-0 bottom-0 bg-indigo-500/20 border-r border-indigo-500" style="width: 35%;"></div>
+                                    <div v-for="h in [30,50,70,40,60,90,80,50,30,60,80,40,70,30,50,90,60,40,80,50,70,40,20,50,80,40]" :style="{ height: h + '%' }" class="w-[2px] bg-gray-800 rounded-full"></div>
+                                </div>
+                                <div class="flex justify-between font-mono text-xs text-gray-500">
+                                    <span>File: {{ project.latestAssets.audio.filename }}</span>
+                                    <span class="text-indigo-400 font-bold">⏱️ {{ project.latestAssets.audio.duration }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex space-x-1 border-b border-gray-200 overflow-x-auto pb-px">
+                    <button v-for="menu in menus" :key="menu.id" @click="currentMenu = menu.id" :class="currentMenu === menu.id ? 'border-gray-900 text-gray-900 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700 font-medium'" class="whitespace-nowrap px-4 py-2 border-b-2 text-sm transition-all">
+                        {{ menu.name }}
+                    </button>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm min-h-64">
+                    
+                    <div v-if="currentMenu === 'detail'" class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <h3 class="text-sm font-bold text-gray-500 tracking-wider uppercase">工程カテゴリ一覧 (クリックして詳細・リテイクを確認)</h3>
+                            <button v-if="mockUser.role === 'admin'" @click="addCategoryPrompt" class="text-sm border border-gray-300 hover:bg-gray-50 px-2.5 py-1.5 rounded-lg font-bold transition-colors">
+                                ＋ カテゴリを追加
+                            </button>
+                        </div>
+                        
+                        <div class="divide-y divide-gray-100">
+                            <div v-for="cat in project.categories" :key="cat.id" @click="openModal(cat)" class="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50 p-2 rounded-xl cursor-pointer transition-all">
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-gray-900 text-base flex items-center gap-1.5">
+                                        {{ cat.title }}
+                                        <span class="text-xs font-normal text-gray-400">詳細を見る ↗</span>
+                                    </h4>
+                                    <div class="flex items-center space-x-2 text-xs font-medium text-gray-500">
+                                        <span>担当者:</span>
+                                        <span v-for="user in cat.assignees" class="bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded font-bold">{{ user }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between sm:justify-end gap-6">
+                                    <div class="text-left sm:text-right">
+                                        <p v-if="cat.filename" class="font-mono text-xs text-gray-700 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded inline-block">{{ cat.filename }}</p>
+                                        <p v-else class="text-xs text-gray-400 italic">⚠️ 成果物なし</p>
+                                    </div>
+                                    <span :class="getStatusClass(cat.status)" class="text-xs font-bold px-2 py-0.5 rounded-md border text-center min-w-[70px]">
+                                        {{ cat.status }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="currentMenu === 'talk'" class="space-y-4">
+                        <h3 class="text-sm font-bold text-gray-500 tracking-wider uppercase">案件内限定リアルタイムチャット</h3>
+                        <div class="border border-gray-100 rounded-xl p-3 bg-gray-50 space-y-3 h-48 overflow-y-auto text-sm leading-relaxed">
+                            <div v-for="chat in project.talks" class="space-y-1">
+                                <div class="flex items-center space-x-2 text-gray-400 text-xs">
+                                    <span class="font-bold text-gray-700">{{ chat.user }}</span>
+                                    <span>• <span class="font-mono">{{ chat.time }}</span></span>
+                                </div>
+                                <p class="bg-white p-2.5 rounded-lg border border-gray-200 inline-block max-w-md text-gray-800 shadow-sm">{{ chat.message }}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="Discordの特定部屋とも自動同期されます..." class="flex-grow border-gray-200 rounded-xl text-sm p-2.5 bg-gray-50 focus:bg-white transition-all">
+                            <button @click="alert('メッセージ送信')" class="bg-gray-900 text-white font-bold text-sm px-5 py-2.5 rounded-xl">送信</button>
+                        </div>
+                    </div>
+
+                    <div v-if="currentMenu === 'board'" class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <h3 class="text-sm font-bold text-gray-500 tracking-wider uppercase">周知・決定事項</h3>
+                            <button @click="alert('アナウンス新規投稿')" class="text-sm border border-gray-300 hover:bg-gray-50 px-3 py-1.5 rounded-lg font-bold">投稿する</button>
+                        </div>
+                        <div class="space-y-3">
+                            <div v-for="b in project.boards" :key="b.id" :class="b.isPinned ? 'border-amber-200 bg-amber-50/20' : 'border-gray-100'" class="p-4 border rounded-xl text-sm relative">
+                                <span v-if="b.isPinned" class="absolute top-3 right-3 text-xs bg-amber-100 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded font-bold">📌 ピン留め</span>
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-base text-gray-900">{{ b.title }}</h4>
+                                    <p class="text-gray-800 leading-relaxed whitespace-pre-wrap">{{ b.content }}</p>
+                                    <div class="pt-2 text-xs text-gray-400 flex items-center space-x-2">
+                                        <span class="font-bold text-gray-500">投稿: {{ b.author }}</span>
+                                        <span>|</span>
+                                        <span class="font-mono">{{ b.date }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="currentMenu === 'wiki'" class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                        <div class="md:col-span-1 border-r border-gray-100 pr-2 space-y-1">
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">📄 ページツリー</p>
+                            <div class="bg-gray-50 p-2 rounded-lg font-bold text-gray-800 cursor-pointer hover:text-black">🏠 レファレンス・全体規約</div>
+                            <div class="pl-3 text-gray-500 cursor-pointer hover:text-black font-medium">├ 歌詞案_決定稿</div>
+                            <div class="pl-3 text-gray-500 cursor-pointer hover:text-black font-medium">└ 動画エンコード規定</div>
+                        </div>
+                        <div class="md:col-span-3 space-y-3">
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                                <h3 class="font-bold text-base text-gray-900">📄 歌詞案_決定稿 (Markdown対応)</h3>
+                                <button @click="alert('Wiki編集モード')" class="text-xs text-gray-600 border border-gray-200 bg-white hover:bg-gray-50 px-2.5 py-1 rounded-md shadow-sm transition-colors">編集</button>
+                            </div>
+                            <div class="bg-gray-50/50 p-4 rounded-xl font-mono leading-relaxed text-gray-700 whitespace-pre-wrap">【Aメロ】&#13;アスファルトを叩く雨のビート&#13;僕らはまだ 答えを探している...&#13;&#13;BPM: 132 / Key: Am</div>
+                        </div>
+                    </div>
+
+                    <div v-if="currentMenu === 'schedule'" class="space-y-4">
+                        <h3 class="text-sm font-bold text-gray-500 tracking-wider uppercase">マイルストーン・日程管理</h3>
+                        <div class="space-y-2">
+                            <div v-for="sch in project.schedules" :key="sch.id" class="p-3 border border-gray-100 rounded-xl bg-gray-50/50 flex justify-between items-center">
+                                <div class="space-y-0.5">
+                                    <h4 class="font-bold text-gray-800 text-sm">{{ sch.title }}</h4>
+                                    <p class="text-xs font-mono text-gray-400">予定日: {{ sch.date }}</p>
+                                </div>
+                                <span :class="sch.daysLeft <= 3 ? 'bg-red-50 text-red-600 border-red-100 font-bold' : 'bg-white text-gray-600 border-gray-200'" class="px-2.5 py-1 border rounded-lg font-mono text-xs shadow-sm">
+                                    残り {{ sch.daysLeft }} 日
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="currentMenu === 'poll'" class="space-y-4">
+                        <h3 class="text-sm font-bold text-gray-500 tracking-wider uppercase">多数決・日程調整</h3>
+                        <div class="border border-gray-200 rounded-xl p-4 bg-gray-50/30 space-y-3 max-w-md shadow-sm">
+                            <div class="space-y-0.5">
+                                <span class="bg-blue-50 text-blue-700 border border-blue-100 text-xs font-bold px-1.5 py-0.5 rounded">投票受付中</span>
+                                <h4 class="font-bold text-base text-gray-900 mt-1">イラストはどちらの方向性にしますか？</h4>
+                            </div>
+                            <div class="space-y-2 pt-2 text-sm">
+                                <button @click="alert('A案に投票しました')" class="w-full bg-white border border-gray-200 p-2.5 rounded-xl text-left hover:border-gray-400 transition-all flex justify-between shadow-sm">
+                                    <span class="font-medium text-gray-700">A案: サイバーパンク・ネオン調</span>
+                                    <span class="font-bold text-gray-500 font-mono">3 票 (75%)</span>
+                                </button>
+                                <button @click="alert('B案に投票しました')" class="w-full bg-white border border-gray-200 p-2.5 rounded-xl text-left hover:border-gray-400 transition-all flex justify-between shadow-sm">
+                                    <span class="font-medium text-gray-700">B案: ノスタルジック・水彩画風</span>
+                                    <span class="font-bold text-gray-500 font-mono">1 票 (25%)</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="currentMenu === 'assets'" class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <h3 class="text-sm font-bold text-gray-500 tracking-wider uppercase">固定アセット・ストレージ</h3>
+                            <button @click="alert('Supabase Storageへ直結アップロード')" class="text-sm bg-gray-900 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm">ファイルを共有</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            <div v-for="asset in project.sharedMaterials" class="p-3 border border-gray-100 rounded-xl bg-white shadow-sm flex justify-between items-center">
+                                <div class="space-y-0.5 truncate">
+                                    <p class="font-bold text-gray-800 truncate">{{ asset.name }}</p>
+                                    <p class="text-xs text-gray-400 uppercase font-mono">{{ asset.type }} | {{ asset.size }}</p>
+                                </div>
+                                <button @click="alert('個別ダウンロード')" class="text-xs text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-md shadow-sm transition-colors shrink-0">DL</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="currentMenu === 'member'" class="space-y-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-2 gap-2">
+                            <h3 class="text-sm font-bold text-gray-500 tracking-wider uppercase">プロジェクト参加者一覧</h3>
+                            <div class="flex gap-2">
+                                <input v-model="inviteDiscordId" type="text" placeholder="DiscordユーザーIDを入力..." class="border-gray-200 rounded-xl text-sm px-2.5 py-1.5 w-48 font-mono">
+                                <button @click="inviteMember" class="bg-gray-900 text-white font-bold text-sm px-4 py-1.5 rounded-xl shrink-0 shadow-sm">招待・アサイン</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                            <div v-for="m in project.members" :key="m.name" class="p-3 border border-gray-100 rounded-xl bg-gray-50/50 flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full bg-slate-200 font-bold flex items-center justify-center text-slate-600 text-xs border border-slate-300 shrink-0">
+                                    {{ m.name.substring(0,2) }}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-900 text-sm">{{ m.name }}</p>
+                                    <span :class="m.role === '管理者' ? 'text-indigo-600 bg-indigo-50 border-indigo-100' : 'text-gray-500 bg-white border-gray-200'" class="text-[10px] px-1.5 py-0.5 rounded border font-bold">
+                                        {{ m.role }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 overflow-y-auto">
+            <div class="bg-white rounded-2xl max-w-5xl w-full border border-gray-200 shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+                
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
+                    <div class="flex items-center space-x-3">
+                        <h2 class="text-lg font-bold tracking-tight text-gray-900">{{ selectedCategory.title }}</h2>
+                        <span :class="getStatusClass(selectedCategory.status)" class="text-xs font-bold px-2 py-0.5 rounded-md border">
+                            {{ selectedCategory.status }}
+                        </span>
+                    </div>
+                    <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="flex-grow p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6 bg-white">
+                    
+                    <div class="space-y-5 pr-0 md:pr-2 border-r-0 md:border-r border-gray-100 text-sm">
+                        <div class="space-y-1.5">
+                            <label class="block font-bold text-gray-700">ステータス</label>
+                            <select v-model="selectedCategory.status" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all">
+                                <option value="未着手">未着手</option>
+                                <option value="進行中">進行中</option>
+                                <option value="要リテイク">要リテイク</option>
+                                <option value="確認中">確認中</option>
+                                <option value="完了">完了</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block font-bold text-gray-700">概要・指示</label>
+                            <div class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 leading-relaxed min-h-16">
+                                {{ selectedCategory.instruction || '音域C3〜G5、ブレス残し目で録音してください。' }}
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block font-bold text-gray-700">ファイル履歴</label>
+                            <div class="space-y-2">
+                                <div v-if="selectedCategory.filename" class="flex items-center justify-between p-2.5 bg-gray-50 border border-gray-100 rounded-xl">
+                                    <span class="font-mono text-gray-700 truncate max-w-[200px]">📄 {{ selectedCategory.filename }}</span>
+                                    <span class="text-xs font-medium text-gray-500">最新バージョン</span>
+                                </div>
+                                <div v-else class="text-sm text-gray-400 italic">まだファイルがありません</div>
+                                
+                                <button @click="alert('新規バージョン提出フォームへ')" class="w-full py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl flex items-center justify-center gap-1 transition-all shadow-sm text-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                    </svg>
+                                    新しいバージョンを提出
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block font-bold text-gray-700">レビュー状況</label>
+                            <div class="border border-gray-100 rounded-xl divide-y divide-gray-50 overflow-hidden shadow-sm">
+                                <div v-for="rev in selectedCategory.reviews" :key="rev.name" class="flex items-center justify-between p-2.5 bg-white">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-[10px]">👤</div>
+                                        <span class="font-bold text-gray-700">{{ rev.name }}</span>
+                                    </div>
+                                    <span :class="getReviewStatusClass(rev.status)" class="text-[10px] font-bold px-1.5 py-0.5 rounded">
+                                        {{ rev.status }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-5 flex flex-col justify-between text-sm">
+                        
+                        <div class="space-y-4">
+                            <div class="border border-gray-200 rounded-xl p-4 bg-white space-y-3 shadow-sm">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-indigo-600">
+                                            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                                            </svg>
+                                        </span>
+                                        <span class="font-bold text-gray-900">波形プレイヤー</span>
+                                        <span class="font-mono text-xs text-gray-400">{{ selectedCategory.filename || 'mix_v2.wav' }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="h-14 bg-gray-50 rounded-lg flex items-center px-4 relative overflow-hidden border border-gray-100">
+                                    <div class="flex items-center justify-between w-full h-8 gap-[3px]">
+                                        <div v-for="h in [40,70,50,80,90,60,40,70,80,50]" :style="{ height: h + '%' }" class="w-full bg-indigo-500 rounded-full"></div>
+                                        <div v-for="h in [60,30,50,80,40,70,90,50,40,60,70,50,30,60,40]" :style="{ height: h + '%' }" class="w-full bg-indigo-200 rounded-full"></div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center space-x-2 font-mono text-xs text-gray-500">
+                                    <button class="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-[10px]">▶</button>
+                                    <span>00:45 / 2:45</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block font-bold text-gray-700">リテイクコメントを投稿</label>
+                                <div class="border border-gray-200 rounded-xl p-3 bg-white space-y-3 shadow-sm">
+                                    <div class="flex items-center space-x-1.5 font-mono text-xs text-gray-400">
+                                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="font-bold text-amber-600">00:45</span>
+                                        <span>（現在の再生位置）</span>
+                                    </div>
+                                    <textarea v-model="newRetakeComment" placeholder="修正指示を入力..." class="w-full border-0 p-0 text-sm text-gray-800 bg-white focus:ring-0 focus:outline-none min-h-16 resize-none" rows="2"></textarea>
+                                    <div class="flex justify-end pt-1 border-t border-gray-50">
+                                        <button @click="submitRetakeComment" :disabled="!newRetakeComment.trim()" :class="newRetakeComment.trim() ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'" class="px-4 py-1.5 rounded-xl font-bold transition-all">
+                                            投稿
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5 pt-2">
+                            <label class="block font-bold text-gray-700">リテイク履歴</label>
+                            <div class="space-y-2 max-h-36 overflow-y-auto pr-1">
+                                <div v-for="comment in selectedCategory.retakeHistory" :key="comment.id" class="p-2.5 bg-amber-50/40 border border-amber-100 rounded-xl space-y-1">
+                                    <div class="flex justify-between items-center font-mono text-xs text-gray-400">
+                                        <span class="font-bold text-amber-700">⏱️ {{ comment.timestamp }}</span>
+                                        <span class="font-bold text-gray-600">{{ comment.author }}</span>
+                                    </div>
+                                    <p class="text-gray-800 leading-normal font-normal">{{ comment.text }}</p>
+                                </div>
+                                <div v-if="!selectedCategory.retakeHistory || selectedCategory.retakeHistory.length === 0" class="text-sm text-gray-400 italic">リテイク履歴はありません</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="bg-white border-t border-gray-200 text-center py-4 mt-auto">
+            <p class="text-xs font-mono text-gray-400">&copy; 2026 SoundProgress. クリーン＆シンプルな日本のクリエイターワークスペース.</p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentMenu: 'detail',
+                    inviteDiscordId: '',
+                    isModalOpen: false,
+                    selectedCategory: null,
+                    newRetakeComment: '',
+
+                    mockUser: {
+                        name: 'タロウ_ボカロP',
+                        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                        role: 'admin'
+                    },
+
+                    menus: [
+                        { id: 'detail', name: '📋 進行明細' },
+                        { id: 'talk', name: '💬 トーク' },
+                        { id: 'board', name: '📌 掲示板' },
+                        { id: 'wiki', name: '📚 Wiki' },
+                        { id: 'schedule', name: '📅 スケジュール' },
+                        { id: 'poll', name: '📊 アンケート' },
+                        { id: 'assets', name: '📁 共有素材' },
+                        { id: 'member', name: '👥 メンバー' }
+                    ],
+
+                    project: {
+                        title: '新曲「ハルノウタ」アルバムリード曲',
+                        status: '進行中',
+                        dueDate: '2026-08-15',
+                        remainingDays: 41,
+                        
+                        latestAssets: {
+                            image: { title: '第一弾メインビジュアル', status: '確認中', filename: 'haru_sketch_v2.png', url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80' },
+                            audio: { title: 'サビ調整ボーカルMIX', status: '要リテイク', filename: 'haru_mix_v3_master.wav', duration: '03:45' }
+                        },
+
+                        categories: [
+                            { 
+                                id: 1, 
+                                title: 'インスト・パラ構成', 
+                                assignees: ['サトウ（ボカロP）'], 
+                                filename: 'haru_inst_v2.wav', 
+                                status: '完了',
+                                instruction: 'BPM132、キーはAm固定です。サビ裏のストリングスを少し厚めで構築してください。',
+                                reviews: [
+                                    { name: 'Haru', status: 'OK' },
+                                    { name: 'Sakura', status: 'OK' }
+                                ],
+                                retakeHistory: []
+                            },
+                            { 
+                                id: 2, 
+                                title: 'ボーカルMIX・マスタリング', 
+                                assignees: ['スズキ（エンジニア）'], 
+                                filename: 'haru_mix_v3_master.wav', 
+                                status: '要リテイク',
+                                instruction: '音域C3〜G5、ブレス残し目で録音されたテイクを元に、J-POP寄りの広がりのあるMIXを願いします。',
+                                reviews: [
+                                    { name: 'Haru', status: '要修正' },
+                                    { name: 'Sakura', status: 'OK' },
+                                    { name: 'Riku', status: '未確認' }
+                                ],
+                                retakeHistory: [
+                                    { id: 1, author: 'Haru', timestamp: '00:45', text: 'サビのボーカルがバックのギタートラックに埋もれ気味なので、2kHz付近を少し前に出してください。' }
+                                ]
+                            },
+                            { 
+                                id: 3, 
+                                title: 'メインイラスト・背景', 
+                                assignees: ['タナカ（絵師）'], 
+                                filename: 'haru_sketch_v2.png', 
+                                status: '進行中',
+                                instruction: '春の暖かさと少しの切なさが同居するサイバーパンク調の街並み。ピンクとネオンブルーを基調に。',
+                                reviews: [
+                                    { name: 'Haru', status: '未確認' },
+                                    { name: 'Riku', status: '未確認' }
+                                ],
+                                retakeHistory: []
+                            },
+                            { 
+                                id: 4, 
+                                title: 'リリックMV・動画エンコード', 
+                                assignees: ['ワタナベ（映像）'], 
+                                filename: '', 
+                                status: '未着手',
+                                instruction: '歌詞のタイポグラフィをメインに、イラストのレイヤーを活かした視差効果を多用したMVにしたいです。',
+                                reviews: [
+                                    { name: 'Haru', status: '未確認' }
+                                ],
+                                retakeHistory: []
+                            }
+                        ],
+
+                        talks: [
+                            { user: 'スズキ（エンジニア）', time: '14:20', message: 'MIXデータのv3アップしました。サビの広がりを確認お願いします！' },
+                            { user: 'タロウ_ボカロP', time: '14:35', message: 'ありがとうございます、今から聴き込みます！' }
+                        ],
+
+                        boards: [
+                            { id: 1, title: 'エンコード時のお願い（重要）', content: '動画師様への引き渡し時は、1080p / 60fps / H.264 で出力をお願いします。共通のカラープロファイルはWikiに貼ってあります。', author: 'ワタナベ（映像）', date: '2026-07-01', isPinned: true },
+                            { id: 2, title: '仮歌提出完了のアナウンス', content: 'ガイドメロディ用の仮歌WAVを共有素材に格納しました。各自確認よろしくお願いします。', author: 'サトウ（ボカロP）', date: '2026-06-25', isPinned: false }
+                        ],
+
+                        schedules: [
+                            { id: 1, title: 'イラスト差分・線画締め切り', date: '2026-07-12', daysLeft: 7 },
+                            { id: 2, title: 'MIX最終リテイクデッドライン', date: '2026-07-20', daysLeft: 15 },
+                            { id: 3, title: '全アセットマスターアップ（完全締め切り）', date: '2026-08-15', daysLeft: 41 }
+                        ],
+
+                        sharedMaterials: [
+                            { name: 'ハルノウタ_歌詞案_FIX.txt', type: 'text', size: '12 KB' },
+                            { name: 'haru_offvocal_BPM132_KeyAm.wav', type: 'audio', size: '42.1 MB' },
+                            { name: 'リファレンス楽曲イメージ.mp3', type: 'audio', size: '8.4 MB' }
+                        ],
+
+                        members: [
+                            { name: 'タロウ_ボカロP', role: '管理者' },
+                            { name: 'サトウ（ボカロP）', role: '一般メンバー' },
+                            { name: 'スズキ（エンジニア）', role: '一般メンバー' },
+                            { name: 'タナカ（絵師）', role: '一般メンバー' }
+                        ]
+                    }
+                }
+            },
+            computed: {
+                progressPercentage() {
+                    const total = this.project.categories.length;
+                    if (total === 0) return 0;
+                    const completed = this.project.categories.filter(c => c.status === '完了').length;
+                    return Math.round((completed / total) * 100);
+                }
+            },
+            methods: {
+                getStatusClass(status) {
+                    switch (status) {
+                        case '完了': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                        case '進行中': return 'bg-blue-50 text-blue-700 border-blue-100';
+                        case '確認中': return 'bg-purple-50 text-purple-700 border-purple-100';
+                        case '要リテイク': return 'bg-amber-50 text-amber-700 border-amber-200';
+                        case '未着手': return 'bg-gray-100 text-gray-500 border-gray-200';
+                        default: return 'bg-gray-50 text-gray-600 border-gray-200';
+                    }
+                },
+                getReviewStatusClass(status) {
+                    switch (status) {
+                        case 'OK': return 'bg-green-100 text-green-700';
+                        case '要修正': return 'bg-orange-100 text-orange-700';
+                        case '未確認': return 'bg-gray-100 text-gray-500';
+                        default: return 'bg-gray-100 text-gray-500';
+                    }
+                },
+                openModal(category) {
+                    this.selectedCategory = category;
+                    this.newRetakeComment = '';
+                    this.isModalOpen = true;
+                },
+                closeModal() {
+                    this.isModalOpen = false;
+                    this.selectedCategory = null;
+                },
+                submitRetakeComment() {
+                    if (!this.newRetakeComment.trim()) return;
+                    
+                    this.selectedCategory.retakeHistory.unshift({
+                        id: Date.now(),
+                        author: this.mockUser.name,
+                        timestamp: '00:45',
+                        text: this.newRetakeComment
+                    });
+                    
+                    this.selectedCategory.status = '要リテイク';
+                    this.newRetakeComment = '';
+                },
+                addCategoryPrompt() {
+                    const title = prompt('追加する工程（タスクカテゴリ）の名前を入力してください:');
+                    if (title) {
+                        this.project.categories.push({
+                            id: Date.now(),
+                            title: title,
+                            assignees: ['未割り当て'],
+                            filename: '',
+                            status: '未着手',
+                            instruction: '指示はまだありません。',
+                            reviews: [{ name: 'Haru', status: '未確認' }],
+                            retakeHistory: []
+                        });
+                    }
+                },
+                inviteMember() {
+                    if (!this.inviteDiscordId.trim()) return;
+                    this.project.members.push({
+                        name: this.inviteDiscordId,
+                        role: '一般メンバー'
+                    });
+                    alert(`📢 Discordアカウント「${this.inviteDiscordId}」をプロジェクトに紐づけました。`);
+                    this.inviteDiscordId = '';
+                },
+                backToHome() {
+                    alert('画面3「コミュニティ内部のプロジェクト一覧」へ戻ります。');
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
