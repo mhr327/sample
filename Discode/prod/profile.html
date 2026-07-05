@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - プロフィール設定</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Noto Sans JP', sans-serif;
+            letter-spacing: -0.01em;
+        }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+
+    <div id="app" class="flex flex-col min-h-screen" v-cloak>
+        
+        <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+                <a href="#" @click.prevent="currentPage = 'profile'" class="flex items-center space-x-2">
+                    <div class="bg-gray-900 text-white p-1.5 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                        </svg>
+                    </div>
+                    <span class="self-center text-lg font-bold tracking-tight text-gray-900">SoundProgress</span>
+                </a>
+                
+                <div class="flex items-center space-x-3">
+                    <button @click="backToWorkspace" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-xl border border-gray-200 transition-all">
+                        ← ワークスペースに戻る
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-grow w-full max-w-2xl mx-auto px-4 py-8">
+            
+            <div class="space-y-6">
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-gray-900">アカウント設定</h1>
+                    <p class="text-xs text-gray-500 mt-1">SoundProgress内での表示名や、Discord Botからの通知プレファレンスを設定します。</p>
+                </div>
+
+                <div class="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-[#5865F2] text-white p-2 rounded-xl shadow-sm">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 21 16"><path d="M16.942 1.556a16.3 16.3 0 0 0-4.026-1.248 12.5 12.5 0 0 0-.535 1.1 15.019 15.019 0 0 0-4.76 0 11.53 11.53 0 0 0-.54-1.1 16.205 16.205 0 0 0-4.026 1.248C.982 4.778-.139 7.913.014 11.008a16.14 16.14 0 0 0 4.964 2.489c.42-.569.782-1.185 1.085-1.84a10.237 10.237 0 0 1-1.57-.745c.13-.096.26-.197.382-.3a11.533 11.533 0 0 0 10.436 0c.123.103.25.204.382.3a10.4 10.4 0 0 1-1.57.745c.307.65.668 1.27 1.087 1.84a16.214 16.214 0 0 0 4.964-2.49c.193-3.46-.774-6.551-3.08-9.452ZM6.904 9.48c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Zm7.192 0c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Z"/></svg>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-bold text-indigo-950">Discord連携アクティブ</p>
+                            <p class="text-indigo-600 font-mono mt-0.5">UID: {{ userProfile.discordId }}</p>
+                        </div>
+                    </div>
+                    <button @click="syncDiscordProfile" type="button" class="bg-white border border-indigo-200 hover:bg-indigo-100/50 text-indigo-700 font-bold text-[11px] px-3 py-1.5 rounded-xl transition-all">
+                        🔄 アバター・アカウント再同期
+                    </button>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-6">
+                    
+                    <div class="flex items-center space-x-4 pb-4 border-b border-gray-100">
+                        <div class="relative group">
+                            <img :src="userProfile.avatar" class="w-16 h-16 rounded-full border-2 border-gray-200 shadow-sm object-cover">
+                            <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                <span class="text-[9px] text-white font-bold">Discord同期</span>
+                            </div>
+                        </div>
+                        <div class="text-xs space-y-1">
+                            <h3 class="font-bold text-gray-900 text-sm">{{ userProfile.systemName }}</h3>
+                            <p class="text-gray-400 font-mono">Discord: @{{ userProfile.discordUsername }}</p>
+                        </div>
+                    </div>
+
+                    <form @submit.prevent="saveProfile" class="space-y-4 text-xs">
+                        
+                        <div class="space-y-1">
+                            <label class="block font-bold text-gray-700">SoundProgress内での表示名</label>
+                            <input v-model="editForm.systemName" type="text" required class="w-full border-gray-200 rounded-xl p-2.5 focus:border-gray-900 text-xs">
+                            <p class="text-[10px] text-gray-400">コライト相手やプロジェクト進行明細に記載される名前です。</p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block font-bold text-gray-700">メインロール（活動カテゴリ）</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                                <label v-for="role in availableRoles" :key="role" class="flex items-center space-x-2 bg-gray-50 border border-gray-200 p-2 rounded-xl cursor-pointer hover:bg-gray-100 select-none">
+                                    <input type="checkbox" :value="role" v-model="editForm.myRoles" class="rounded border-gray-300 text-gray-900 focus:ring-0">
+                                    <span class="font-medium text-gray-700 text-[11px]">{{ role }}</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-100 pt-4 space-y-3">
+                            <h3 class="font-bold text-gray-900 text-sm">🤖 通知プレファレンス</h3>
+                            <p class="text-[10px] text-gray-400">自分自身が関わるタスクの変更時、どの通知を受け取るか設定します。</p>
+                            
+                            <div class="space-y-2">
+                                <label class="flex items-start space-x-3 p-1">
+                                    <input type="checkbox" v-model="editForm.notifyOnRetake" class="mt-0.5 rounded border-gray-300 text-gray-900 focus:ring-0">
+                                    <div>
+                                        <p class="font-bold text-gray-700">要リテイクのメンション通知</p>
+                                        <p class="text-[10px] text-gray-400">担当する工程が「要リテイク」に巻き戻った際、Discord上で即時ダイレクト・メンションを受け取る</p>
+                                    </div>
+                                </label>
+
+                                <label class="flex items-start space-x-3 p-1">
+                                    <input type="checkbox" v-model="editForm.notifyOnDeadline" class="mt-0.5 rounded border-gray-300 text-gray-900 focus:ring-0">
+                                    <div>
+                                        <p class="font-bold text-gray-700">締切リマインド通知</p>
+                                        <p class="text-[10px] text-gray-400">タスク締め切りの3日前、および当日に自動リマインド通知を紐づくDiscordチャンネルにブロードキャストする</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-gray-100 flex justify-end space-x-2">
+                            <button type="button" @click="resetForm" class="px-3 py-2 text-gray-500 hover:bg-gray-50 rounded-xl font-medium">変更を破棄</button>
+                            <button type="submit" class="px-5 py-2.5 bg-gray-900 text-white hover:bg-gray-800 rounded-xl font-bold shadow-sm transition-colors">
+                                プロフィールを保存
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="bg-white border-t border-gray-200 text-center py-4 mt-auto">
+            <p class="text-[11px] text-gray-400">&copy; 2026 SoundProgress. クリーン＆シンプルな日本のクリエイターワークスペース.</p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    // 利用可能なロール一覧
+                    availableRoles: ['ボカロP / 作曲', 'MIX / マスタリング', 'イラストレーター', '映像 / 動画師'],
+
+                    // ユーザープロフィール（DBから引いてくるマスターデータ想定）
+                    userProfile: {
+                        discordId: '123456789012345678',
+                        discordUsername: 'tarou_vocalop',
+                        systemName: 'タロウ_ボカロP',
+                        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                        myRoles: ['ボカロP / 作曲'],
+                        notifyOnRetake: true,
+                        notifyOnDeadline: true
+                    },
+
+                    // 編集中のフォームデータ（バインディング用）
+                    editForm: {
+                        systemName: '',
+                        myRoles: [],
+                        notifyOnRetake: true,
+                        notifyOnDeadline: true
+                    }
+                }
+            },
+            mounted() {
+                // 初期化時にマスターデータをフォームにコピー
+                this.resetForm();
+            },
+            methods: {
+                resetForm() {
+                    this.editForm = {
+                        systemName: this.userProfile.systemName,
+                        myRoles: [...this.userProfile.myRoles],
+                        notifyOnRetake: this.userProfile.notifyOnRetake,
+                        notifyOnDeadline: this.userProfile.notifyOnDeadline
+                    };
+                },
+                saveProfile() {
+                    // 本来はここにSupabase / Django API へのPATCHリクエストが入ります
+                    this.userProfile.systemName = this.editForm.systemName;
+                    this.userProfile.myRoles = [...this.editForm.myRoles];
+                    this.userProfile.notifyOnRetake = this.editForm.notifyOnRetake;
+                    this.userProfile.notifyOnDeadline = this.editForm.notifyOnDeadline;
+
+                    alert('💾 プロフィール設定を保存しました。\n変更内容は所属するすべてのプロジェクトに即時反映されます。');
+                },
+                syncDiscordProfile() {
+                    // Discord OAuth2 APIの再呼び出しシミュレート
+                    alert('🔄 Discord APIから最新のグローバルアバターおよびユーザーネームを取得し、再同期しました。');
+                    this.userProfile.avatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
+                },
+                backToWorkspace() {
+                    alert('プロジェクト一覧/ホーム画面へ戻ります。');
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
