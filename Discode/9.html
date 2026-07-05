@@ -1,1 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - プロジェクト詳細</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; letter-spacing: -0.01em; }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50/50 text-gray-900 min-h-screen flex flex-col antialiased">
 
+    <div id="app" class="flex flex-col min-h-screen" v-cloak>
+        
+        <nav class="bg-white border-b border-gray-100 sticky top-0 z-40 backdrop-blur-md bg-white/90 px-4 py-3">
+            <div class="max-w-screen-xl mx-auto flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs font-bold bg-gray-900 text-white px-2 py-1 rounded-lg">コミュニティ: ボカロPサークルX</span>
+                    <span class="text-gray-300">/</span>
+                    <span class="text-xs text-gray-500 font-medium">新曲「ハルノウタ」</span>
+                </div>
+                <img class="w-7 h-7 rounded-full border border-gray-200" :src="mockUser.avatar">
+            </div>
+        </nav>
+
+        <div class="flex-grow w-full max-w-screen-xl mx-auto px-4 py-6 space-y-6">
+
+            <div class="bg-white border border-gray-200/60 rounded-2xl p-4 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gray-50 rounded-xl h-32 flex items-center justify-center border border-gray-100 overflow-hidden relative">
+                    <span class="text-[11px] font-bold text-gray-400 absolute top-2 left-2 bg-white/80 px-1.5 py-0.5 rounded">最新イラストアセット</span>
+                    <p class="text-xs text-gray-400">No Image (未提出、またはイラスト工程未完了)</p>
+                </div>
+                <div class="md:col-span-2 bg-gray-950 rounded-xl p-4 text-white flex flex-col justify-between">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] bg-indigo-600 px-2 py-0.5 rounded font-mono font-bold">LATEST MASTER_v1.wav</span>
+                        <button @click="alert('一括ZIPダウンロード（全カテゴリの最新ファイル）')" class="text-[11px] bg-gray-800 hover:bg-gray-700 text-gray-200 px-2.5 py-1 rounded-lg transition-colors">
+                            📦 一括ダウンロード
+                        </button>
+                    </div>
+                    <div class="bg-gray-900 h-10 rounded-lg flex items-center px-3 justify-between border border-gray-800">
+                        <button @click="alert('マスター音源再生')" class="text-xs font-bold text-indigo-400">▶ 再生 (00:00 / 03:45)</button>
+                        <div class="w-2/3 bg-gray-800 h-1 rounded-full"><div class="bg-indigo-500 h-1 w-0"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex space-x-1 border-b border-gray-200 overflow-x-auto pb-px">
+                    <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id" :class="currentTab === tab.id ? 'border-indigo-600 text-indigo-600 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700 font-medium'" class="whitespace-nowrap px-4 py-2 border-b-2 text-xs transition-all">
+                        {{ tab.name }}
+                    </button>
+                </div>
+
+                <div>
+                    <div v-if="currentTab === '明細'" class="space-y-3">
+                        <p class="text-[11px] text-gray-400">※行をタップすると、その工程専用の「履歴・詳細リテイクモーダル」が起動します。</p>
+                        <div class="bg-white border border-gray-200/60 rounded-xl overflow-hidden shadow-sm">
+                            <div class="divide-y divide-gray-100">
+                                <div v-for="cat in mockCategories" :key="cat.id" @click="openCategoryModal(cat)" class="p-4 hover:bg-gray-50 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-2 group">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-2.5 h-2.5 rounded-full" :class="cat.statusColor"></div>
+                                        <div>
+                                            <h4 class="text-xs font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{{ cat.name }}</h4>
+                                            <p class="text-[10px] text-gray-400">担当: {{ cat.assignee }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between sm:justify-end gap-4 text-right">
+                                        <div>
+                                            <p class="text-[10px] font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded inline-block">{{ cat.latestFile }}</p>
+                                            <p class="text-[9px] text-gray-400 mt-0.5">ステータス: <span class="font-bold text-gray-700">{{ cat.statusText }}</span></p>
+                                        </div>
+                                        <svg class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else class="bg-white border border-gray-200/60 rounded-xl p-8 text-center text-xs text-gray-400">
+                        「{{ tabs.find(t => t.id === currentTab).name }}」タブの内容（要件定義書に準拠した実装エリア）
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div v-if="activeCategory" class="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
+            <div @click="activeCategory = null" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm"></div>
+            
+            <div class="bg-white w-full h-full sm:h-[85vh] sm:max-w-4xl sm:rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden border border-gray-200">
+                
+                <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">工程個別ワークスペース</span>
+                        <h3 class="text-sm font-bold text-gray-900">{{ activeCategory.name }} ─ 担当: {{ activeCategory.assignee }}</h3>
+                    </div>
+                    <button @click="activeCategory = null" class="bg-white border border-gray-200 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
+                    
+                    <div class="w-full md:w-5/12 border-b md:border-b-0 md:border-r border-gray-100 p-4 overflow-y-auto space-y-4 bg-gray-50/30">
+                        <div class="space-y-1">
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">📋 提出ファイル履歴 (バージョン管理)</h4>
+                            <div class="space-y-1.5">
+                                <div v-for="ver in activeCategory.versions" :key="ver.v" @click="selectedVersion = ver" :class="selectedVersion.v === ver.v ? 'border-indigo-600 bg-indigo-50/40 text-indigo-900 font-bold' : 'border-gray-200 bg-white text-gray-600'" class="p-2.5 border rounded-xl text-xs flex justify-between items-center cursor-pointer transition-all">
+                                    <span>{{ ver.filename }}</span>
+                                    <span class="text-[9px] font-mono text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">{{ ver.v }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center bg-white hover:bg-gray-50 transition-colors cursor-pointer" @click="alert('ファイルアップロードダイアログ起動 (Supabase Storageへ直結想定)')">
+                            <p class="text-xs font-bold text-gray-700">新バージョンを提出 (v{{ activeCategory.versions.length + 1 }})</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">WAV, MP3, ZIP, PNG等 (最大2GB)</p>
+                        </div>
+
+                        <div class="bg-white border border-gray-100 rounded-xl p-3 space-y-2">
+                            <h5 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">🟢 メンバー確認状況</h5>
+                            <div class="flex flex-wrap gap-2 text-[10px]">
+                                <span class="bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded-md font-medium">プロデューサーA: 🟢 OK</span>
+                                <span class="bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 rounded-md font-medium">歌い手B: ❌ 要修正</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-7/12 p-4 overflow-y-auto space-y-4 flex flex-col justify-between h-full">
+                        <div class="space-y-4">
+                            <div class="bg-gray-950 p-4 rounded-xl text-white space-y-2">
+                                <div class="flex justify-between text-[10px] text-gray-400">
+                                    <span class="font-mono text-indigo-300">{{ selectedVersion.v }} 再生中...</span>
+                                    <span>{{ selectedVersion.filename }}</span>
+                                </div>
+                                <div @click="captureTimestamp" class="h-12 bg-gray-900 border border-gray-800 rounded-lg flex items-end justify-between px-2 cursor-pointer relative overflow-hidden group">
+                                    <div class="absolute left-0 top-0 bottom-0 bg-indigo-500/10 border-r border-indigo-500" style="width: 45%;"></div>
+                                    <div v-for="h in [20,40,60,30,50,80,90,40,30,60,70,40,50,20,40,80,60,40,90,30,50,70,20]" :style="{ height: h + '%' }" class="w-[3px] bg-gray-700 rounded-full"></div>
+                                    <span class="absolute right-2 bottom-1 text-[9px] font-mono text-gray-500">クリックで秒数を固定</span>
+                                </div>
+                                <div class="text-[11px] font-mono text-indigo-400">⏱️ 現在位置: 01:23 / 03:15</div>
+                            </div>
+
+                            <form @submit.prevent="submitRetake" class="bg-gray-50 border border-gray-200 p-3 rounded-xl space-y-2">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-[10px] font-bold text-gray-500">タイムスタンプ:</span>
+                                    <input v-model="retakeForm.timestamp" type="text" class="w-16 border-gray-200 text-xs p-1 rounded-md font-mono text-center bg-white" placeholder="00:00" required>
+                                </div>
+                                <div class="flex gap-2">
+                                    <input v-model="retakeForm.comment" type="text" class="flex-grow border-gray-200 text-xs p-2 rounded-xl bg-white" placeholder="リテイク指示を記述...（Discordへ自動爆撃されます）" required>
+                                    <button type="submit" class="bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs px-3 py-2 rounded-xl shrink-0 transition-colors">投稿</button>
+                                </div>
+                            </form>
+
+                            <div class="space-y-2">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">💬 このバージョンのリテイク履歴</h4>
+                                <div class="divide-y divide-gray-100 border border-gray-100 rounded-xl bg-white p-2 space-y-2 max-h-48 overflow-y-auto">
+                                    <div v-for="ret in activeCategory.retakes.filter(r => r.v === selectedVersion.v)" :key="ret.id" class="pt-2 first:pt-0 flex items-start justify-between text-xs">
+                                        <div class="space-y-0.5">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="bg-amber-50 text-amber-700 border border-amber-100 font-mono text-[9px] px-1 rounded">{{ ret.timestamp }}</span>
+                                                <span class="font-bold text-gray-700 text-[10px]">{{ ret.author }}</span>
+                                            </div>
+                                            <p class="text-gray-600 pl-1 text-[11px]">{{ ret.comment }}</p>
+                                        </div>
+                                        <input type="checkbox" :checked="ret.resolved" @change="ret.resolved = !ret.resolved" class="w-3.5 h-3.5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer">
+                                    </div>
+                                    <div v-if="activeCategory.retakes.filter(r => r.v === selectedVersion.v).length === 0" class="text-center text-gray-400 py-4 text-[11px]">
+                                        このバージョンへの修正指示はありません。綺麗です！✨
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                return {
+                    currentTab: '明細',
+                    activeCategory: null,  // タップして開いたカテゴリ（モーダル用）
+                    selectedVersion: null, // モーダル内で選択中のファイルバージョン
+                    retakeForm: { timestamp: '01:23', comment: '' },
+                    mockUser: { name: 'タロウ_ボカロP', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80' },
+                    tabs: [
+                        { id: '明細', name: '★ 進行明細' }, { id: 'トーク', name: '💬 トーク' }, { id: '掲示板', name: '📌 掲示板' },
+                        { id: 'Wiki', name: '📚 Wiki' }, { id: 'スケジュール', name: '📅 スケジュール' }, { id: 'アンケート', name: '📊 アンケート' },
+                        { id: '素材', name: '📁 共有素材' }, { id: 'メンバー', name: '👥 メンバー' }
+                    ],
+                    // 🌟 要件定義書に準拠した、カテゴリ（工程）ごとの多層データ構造
+                    mockCategories: [
+                        { 
+                            id: 1, name: 'インスト・パラ構成', assignee: 'サトウ（ボカロP）', latestFile: 'haru_inst_v2.wav', statusText: '確認中', statusColor: 'bg-blue-500',
+                            versions: [{ v: 'v2', filename: 'haru_inst_v2.wav' }, { v: 'v1', filename: 'haru_inst_v1.wav' }],
+                            retakes: [{ id: 101, v: 'v1', timestamp: '00:45', author: 'プロデューサーA', comment: 'イントロのストリングスを少し引っ込めてほしい', resolved: true }]
+                        },
+                        { 
+                            id: 2, name: 'ボーカルMIX・マスタリング', assignee: 'スズキ（エンジニア）', latestFile: 'haru_mix_v3.wav', statusText: '要リテイク', statusColor: 'bg-amber-500',
+                            versions: [{ v: 'v3', filename: 'haru_mix_v3.wav' }, { v: 'v2', filename: 'haru_mix_v2.wav' }, { v: 'v1', filename: 'haru_mix_v1.wav' }],
+                            retakes: [
+                                { id: 201, v: 'v3', timestamp: '01:23', author: '歌い手B', comment: 'サビのボーカルのディレイをもう少し薄くしたいです', resolved: false },
+                                { id: 202, v: 'v2', timestamp: '02:10', author: 'プロデューサーA', comment: '2番の頭のピッチをわずかに修正希望', resolved: true }
+                            ]
+                        },
+                        { 
+                            id: 3, name: 'メインイラスト・背景アセット', assignee: 'タナカ（絵師）', latestFile: '未提出', statusText: '未着手', statusColor: 'bg-gray-300',
+                            versions: [], retakes: []
+                        }
+                    ]
+                }
+            },
+            methods: {
+                openCategoryModal(cat) {
+                    this.activeCategory = cat;
+                    // デフォルトで最新のバージョンを選択状態にする
+                    this.selectedVersion = cat.versions.length > 0 ? cat.versions[0] : { v: 'v0', filename: '未提出' };
+                },
+                captureTimestamp() {
+                    // 疑似波形クリックでランダムに秒数を取得するインタラクション演出
+                    const sec = ('0' + Math.floor(Math.random() * 60)).slice(-2);
+                    this.retakeForm.timestamp = `01:${sec}`;
+                },
+                submitRetake() {
+                    this.activeCategory.retakes.unshift({
+                        id: Date.now(),
+                        v: this.selectedVersion.v,
+                        timestamp: this.retakeForm.timestamp,
+                        author: this.mockUser.name,
+                        comment: this.retakeForm.comment,
+                        resolved: false
+                    });
+                    alert(`📢 Discordへ通知を発射しました！\n[${this.activeCategory.name} - ${this.selectedVersion.v}] ${this.retakeForm.timestamp} のリテイク指示をDiscordの指定チャンネルへ自動同期しました。`);
+                    this.retakeForm.comment = '';
+                },
+                backToDashboard() {
+                    alert('コミュニティ/プロジェクト一覧画面へ戻る（想定）');
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
