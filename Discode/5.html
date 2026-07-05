@@ -1,1 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - 音楽制作進行管理</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Flowbite CSS CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <!-- 日本の美意識に合う、細部まで美しいフォントの統合 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+            letter-spacing: -0.01em;
+        }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<!-- ノイズのない、凛とした静かな白の世界観。かすかにグレーを敷いて境界を立体的に -->
+<body class="bg-gray-50/50 text-gray-900 min-h-screen flex flex-col antialiased">
 
+    <div id="app" class="flex flex-col min-h-screen" v-cloak>
+        
+        <!-- ヘッダー：極細のボーダーと半透明のモダンなスタジオ風ヘッダー -->
+        <nav class="bg-white/80 border-b border-gray-100 sticky top-0 z-40 backdrop-blur-md">
+            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+                <a href="#" @click.prevent="currentPage = 'lp'" class="flex items-center space-x-3">
+                    <div class="bg-indigo-600 text-white p-2 rounded-xl">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <span class="self-center text-base font-bold tracking-tight text-gray-900">SoundProgress</span>
+                </a>
+                
+                <div class="flex items-center space-x-3">
+                    <!-- 未ログイン時 -->
+                    <button v-if="currentPage === 'lp'" @click="loginWithDiscord" type="button" class="text-white bg-[#5865F2] hover:bg-[#4752C4] font-medium rounded-xl text-xs px-4 py-2.5 inline-flex items-center transition-all">
+                        <svg class="w-4 h-4 me-2" fill="currentColor" viewBox="0 0 21 16"><path d="M16.942 1.556a16.3 16.3 0 0 0-4.026-1.248 12.5 12.5 0 0 0-.535 1.1 15.019 15.019 0 0 0-4.76 0 11.53 11.53 0 0 0-.54-1.1 16.205 16.205 0 0 0-4.026 1.248C.982 4.778-.139 7.913.014 11.008a16.14 16.14 0 0 0 4.964 2.489c.42-.569.782-1.185 1.085-1.84a10.237 10.237 0 0 1-1.57-.745c.13-.096.26-.197.382-.3a11.533 11.533 0 0 0 10.436 0c.123.103.25.204.382.3a10.4 10.4 0 0 1-1.57.745c.307.65.668 1.27 1.087 1.84a16.214 16.214 0 0 0 4.964-2.49c.193-3.46-.774-6.551-3.08-9.452ZM6.904 9.48c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Zm7.192 0c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Z"/></svg>
+                        Discordでログイン
+                    </button>
+                    <!-- ログイン後ユーザー表示 -->
+                    <div v-else class="flex items-center space-x-3 bg-gray-100 p-1 pe-3 rounded-full border border-gray-200/60">
+                        <img class="w-6 h-6 rounded-full" :src="mockUser.avatar" :alt="mockUser.name">
+                        <span class="text-xs font-medium text-gray-700">{{ mockUser.name }}</span>
+                        <button @click="logout" class="text-[10px] text-gray-400 hover:text-red-600 font-medium transition-colors border-l border-gray-200 ps-2">ログアウト</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- メイン領域 (スマホ最優先・1カラムの美しい引き算) -->
+        <main class="flex-grow w-full max-w-screen-md mx-auto px-4 py-16">
+            
+            <!-- ========================================== -->
+            <!-- 📄 画面1. ランディングページ（洗練の極み） -->
+            <!-- ========================================== -->
+            <div v-if="currentPage === 'lp'" class="space-y-16">
+                
+                <!-- ヒーロー -->
+                <div class="space-y-5">
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
+                        音楽制作の進行管理を、<br>
+                        もっと強固に、シンプルに。
+                    </h1>
+                    <p class="text-sm text-gray-500 leading-relaxed font-normal">
+                        アカウント重複や無駄なデータベース処理をすべて根こそぎカット。<br>
+                        ログインはSupabase Authを介した「Discord認証」のみ。2階層の構造だけで回す、美しく頑丈なワークスペース。
+                    </p>
+                    
+                    <div class="pt-4">
+                        <button @click="loginWithDiscord" class="text-white bg-[#5865F2] hover:bg-[#4752C4] font-semibold rounded-xl text-sm px-6 py-3.5 inline-flex items-center transition-all shadow-sm">
+                            <svg class="w-4 h-4 me-2.5" fill="currentColor" viewBox="0 0 21 16"><path d="M16.942 1.556a16.3 16.3 0 0 0-4.026-1.248 12.5 12.5 0 0 0-.535 1.1 15.019 15.019 0 0 0-4.76 0 11.53 11.53 0 0 0-.54-1.1 16.205 16.205 0 0 0-4.026 1.248C.982 4.778-.139 7.913.014 11.008a16.14 16.14 0 0 0 4.964 2.489c.42-.569.782-1.185 1.085-1.84a10.237 10.237 0 0 1-1.57-.745c.13-.096.26-.197.382-.3a11.533 11.533 0 0 0 10.436 0c.123.103.25.204.382.3a10.4 10.4 0 0 1-1.57.745c.307.65.668 1.27 1.087 1.84a16.214 16.214 0 0 0 4.964-2.49c.193-3.46-.774-6.551-3.08-9.452ZM6.904 9.48c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Zm7.192 0c-.966 0-1.765-.873-1.765-1.944 0-1.07.785-1.944 1.765-1.944.986 0 1.77.878 1.765 1.944 0 1.07-.78 1.944-1.765 1.944Z"/></svg>
+                            Discordでログインして開始
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 特徴リスト：あえてグリッドを組まず、Flowbiteのミニマルなリスト形式で密度を凝縮 -->
+                <div class="space-y-6 border-t border-gray-100 pt-10">
+                    <h2 class="text-xs font-bold tracking-widest text-gray-400 uppercase">SYSTEM ARCHITECTURE</h2>
+                    
+                    <div class="flex items-start space-x-4">
+                        <div class="text-xs font-bold text-gray-400 pt-0.5">01</div>
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-900">大容量ストレージ</h3>
+                            <p class="text-xs text-gray-500 mt-1 leading-relaxed">WAV音源や重いイラストデータをプロジェクト毎に完全集約。もう共有URLを探す迷路には迷い込みません。</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-4">
+                        <div class="text-xs font-bold text-gray-400 pt-0.5">02</div>
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-900">波形プレイヤー ＆ タイムスタンプリテイク</h3>
+                            <p class="text-xs text-gray-500 mt-1 leading-relaxed">Wavesurfer.jsと連動し、波形をクリックするだけでピンポイントな修正指示。リテイク指示を即座に可視化します。</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-4">
+                        <div class="text-xs font-bold text-gray-400 pt-0.5">03</div>
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-900">Discord Bot 自動通知同期</h3>
+                            <p class="text-xs text-gray-500 mt-1 leading-relaxed">成果物の提出やリテイク、締切3日前・24時間前のリマインドなど、担当者を自動メンションして指定チャンネルへ爆速通知。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 📄 画面2. コミュニティ一覧画面（ホーム画面） -->
+            <!-- ========================================== -->
+            <div v-if="currentPage === 'home'" class="space-y-8">
+                
+                <!-- タイトルエリア：静かで無駄のないダッシュボード -->
+                <div class="flex items-center justify-between border-b border-gray-100 pb-5">
+                    <div>
+                        <h1 class="text-lg font-bold text-gray-900 tracking-tight">所属コミュニティ</h1>
+                        <p class="text-xs text-gray-400 mt-0.5">参加しているDiscordサーバーの作業スペースに切り替えます。</p>
+                    </div>
+                    <!-- 管理者専用：極めてクリーンなインライン配置の追加ボタン -->
+                    <button v-if="mockUser.role === 'admin'" type="button" class="text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 font-medium rounded-lg text-xs px-3 py-2 transition-colors">
+                        新規連携
+                    </button>
+                </div>
+
+                <!-- コミュニティリスト：余計な枠をなくし、1カラムのリスト形式で日本の美しいスマートさを徹底表現 -->
+                <div class="divide-y divide-gray-100 bg-white border border-gray-200/60 rounded-xl overflow-hidden shadow-sm">
+                    <div v-for="com in mockCommunities" :key="com.id" class="p-4 sm:p-5 hover:bg-gray-50/80 transition-colors cursor-pointer flex items-center justify-between gap-4" @click="selectCommunity(com)">
+                        <div class="flex items-center space-x-3">
+                            <!-- プレーンで美しいミニマリズムアイコン -->
+                            <div class="w-8 h-8 bg-gray-900 text-white rounded-lg flex items-center justify-center font-bold text-xs tracking-tighter">
+                                {{ com.name.substring(0, 1) }}
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-gray-900">{{ com.name }}</h3>
+                                <p class="text-[10px] font-mono text-gray-400 mt-0.5">ID: {{ com.discordServerId }}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- ステータスを小さく、だが確実に視認できるよう配置 -->
+                        <div class="flex items-center space-x-3 shrink-0">
+                            <span class="text-xs font-semibold text-gray-400">
+                                {{ com.projectCount }} 案件
+                            </span>
+                            <span class="bg-emerald-50 text-emerald-700 text-[10px] font-medium px-2 py-0.5 rounded border border-emerald-100/80">
+                                連携中
+                            </span>
+                            <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 下部インフォ：FlowbiteのクリーンなAlertをインラインに溶け込ませる -->
+                <div class="p-4 bg-gray-50 border border-gray-200/60 rounded-xl flex items-start space-x-2.5">
+                    <svg class="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.063.852l-.708 2.836a.75.75 0 001.063.852l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
+                    <p class="text-xs text-gray-400 leading-normal font-normal">
+                        サーバーが表示されない場合は、管理者（Admin）が「新規連携」からDiscord Botをサーバーに導入することで、自動的に作業スペースが構築されます。
+                    </p>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- フッター -->
+        <footer class="text-center py-8 mt-auto">
+            <p class="text-[10px] font-medium text-gray-400 tracking-wide">&copy; 2026 SoundProgress. Simple, Silent and Rigid Tool.</p>
+        </footer>
+    </div>
+
+    <!-- Vue.js 3 (CDN) -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Flowbite JS (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentPage: 'lp',
+                    mockUser: {
+                        name: 'タロウ_ボカロP',
+                        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                        role: 'admin'
+                    },
+                    mockCommunities: [
+                        { id: 1, name: 'ボカロPサークルX', discordServerId: '987654321012345678', projectCount: 4 },
+                        { id: 2, name: '〇〇の国 (歌い手グループ)', discordServerId: '123456789012345678', projectCount: 2 },
+                        { id: 3, name: 'クリエイター同盟 東北支部', discordServerId: '556677889900112233', projectCount: 7 }
+                    ]
+                }
+            },
+            methods: {
+                loginWithDiscord() {
+                    this.currentPage = 'home';
+                },
+                logout() {
+                    this.currentPage = 'lp';
+                },
+                selectCommunity(community) {
+                    alert(`コミュニティ「${community.name}」を選択しました。\n次はいよいよ【画面3. プロジェクト一覧】を読み込みます。`);
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
