@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Noto Sans JP', sans-serif;
@@ -57,7 +58,7 @@
                         <span>/</span>
                         <span class="text-gray-600 font-medium">{{ currentCommunityName }}</span>
                     </div>
-                    <h1 class="text-2xl font-bold tracking-tight text-gray-900">コミュニティダッシュボード</h1>
+                    <h1 class="text-2xl font-bold tracking-tight text-gray-900">コミュニティホーム</h1>
                 </div>
                 <div v-if="mockUser.role === 'admin'">
                     <button @click="isModalOpen = true" type="button" class="text-white bg-gray-900 hover:bg-gray-800 font-bold rounded-lg text-sm px-5 py-2.5 inline-flex items-center transition-colors shadow-sm">
@@ -121,7 +122,7 @@
                                         {{ proj.title }}
                                     </h3>
                                     <div class="flex items-center space-x-2 mt-2 text-xs text-slate-500 font-mono">
-                                        <span class="bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">💬 #{{ proj.discordMainChannel }}</span>
+                                        <span class="bg-slate-50 border border-slate-100 px-2 py-0.5 rounded inline-flex items-center gap-1"><i class="bi bi-chat-left"></i>#{{ proj.discordMainChannel }}</span>
                                     </div>
                                 </div>
                                 <div class="space-y-2">
@@ -147,13 +148,13 @@
 
             <div class="border-t border-gray-200 pt-8 space-y-4">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-900 tracking-tight">🏛️ コミュニティ共通スペース</h2>
+                    <h2 class="text-lg font-bold text-gray-900 tracking-tight flex items-center gap-2"><i class="bi bi-building"></i>コミュニティ共通スペース</h2>
                     <p class="text-sm text-gray-500 mt-0.5">サークル・ゼミ全体で横断して利用する共有機能群です。</p>
                 </div>
 
                 <div class="flex space-x-1 border-b border-gray-200 overflow-x-auto pb-px">
-                    <button v-for="menu in communityMenus" :key="menu.id" @click="currentCommunityMenu = menu.id" :class="currentCommunityMenu === menu.id ? 'border-gray-900 text-gray-900 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700 font-medium'" class="whitespace-nowrap px-4 py-2.5 border-b-2 text-sm transition-all">
-                        {{ menu.name }}
+                    <button v-for="menu in communityMenus" :key="menu.id" @click="currentCommunityMenu = menu.id" :class="currentCommunityMenu === menu.id ? 'border-gray-900 text-gray-900 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700 font-medium'" class="whitespace-nowrap px-4 py-2.5 border-b-2 text-sm transition-all inline-flex items-center gap-1.5">
+                        <i :class="menu.icon"></i>{{ menu.name }}
                     </button>
                 </div>
 
@@ -181,14 +182,14 @@
 
                     <div v-if="currentCommunityMenu === 'wiki'" class="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
                         <div class="md:col-span-1 border-r border-gray-100 pr-4 space-y-1.5">
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">📄 ナレッジツリー</p>
-                            <div class="bg-gray-50 p-2.5 rounded-lg font-bold text-gray-800 cursor-pointer">🏠 サークル全体運営規約</div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><i class="bi bi-file-earmark-text"></i>ナレッジツリー</p>
+                            <div class="bg-gray-50 p-2.5 rounded-lg font-bold text-gray-800 cursor-pointer flex items-center gap-1.5"><i class="bi bi-house"></i>サークル全体運営規約</div>
                             <div class="pl-3 text-gray-500 cursor-pointer hover:text-black transition-colors">├ 共有ドライブ構成のルール</div>
                             <div class="pl-3 text-gray-500 cursor-pointer hover:text-black transition-colors">└ 機材・プラグイン資産リスト</div>
                         </div>
                         <div class="md:col-span-3 space-y-4">
                             <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-                                <h3 class="font-bold text-base text-gray-900">🏠 サークル全体運営規約</h3>
+                                <h3 class="font-bold text-base text-gray-900 flex items-center gap-1.5"><i class="bi bi-house"></i>サークル全体運営規約</h3>
                                 <button @click="alert('Wiki編集')" class="text-xs text-gray-600 border border-gray-200 bg-white hover:bg-gray-50 px-2.5 py-1 rounded-md shadow-sm transition-colors">編集</button>
                             </div>
                             <div class="bg-gray-50/50 p-5 rounded-xl font-mono leading-relaxed text-gray-700 whitespace-pre-wrap text-sm">1. 提出締め切りは、各プロジェクト目標日の「前日23:59」を絶対厳守とします。&#13;2. リテイクが発生した場合はDiscordのBot通知を確認し、速やかにレスポンスをお願いします。&#13;3. 共有素材はすべてSoundProgressの共有ファイルストレージへ集約します。</div>
@@ -202,7 +203,7 @@
                         </div>
                         <div class="space-y-3">
                             <div v-for="b in communityData.boards" :key="b.id" :class="b.isPinned ? 'border-amber-200 bg-amber-50/20' : 'border-gray-100'" class="p-5 border rounded-xl text-sm relative">
-                                <span v-if="b.isPinned" class="absolute top-4 right-4 text-xs bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded font-bold">📌 ピン留め</span>
+                                <span v-if="b.isPinned" class="absolute top-4 right-4 text-xs bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded font-bold inline-flex items-center gap-1"><i class="bi bi-pin-fill"></i>ピン留め</span>
                                 <div class="space-y-2">
                                     <h4 class="font-bold text-base text-gray-900">{{ b.title }}</h4>
                                     <p class="text-gray-600 leading-relaxed whitespace-pre-wrap text-sm">{{ b.content }}</p>
@@ -361,13 +362,13 @@
                     ],
 
                     communityMenus: [
-                        { id: 'talk', name: '💬 トーク' },
-                        { id: 'wiki', name: '📚 Wiki' },
-                        { id: 'board', name: '📌 掲示板' },
-                        { id: 'schedule', name: '📅 スケジュール' },
-                        { id: 'poll', name: '📊 アンケート' },
-                        { id: 'files', name: '📁 ファイル共有' },
-                        { id: 'members', name: '👥 メンバー一覧' }
+                        { id: 'talk', name: 'トーク', icon: 'bi bi-chat-left' },
+                        { id: 'wiki', name: 'Wiki', icon: 'bi bi-book' },
+                        { id: 'board', name: '掲示板', icon: 'bi bi-pin-fill' },
+                        { id: 'schedule', name: 'スケジュール', icon: 'bi bi-calendar-date' },
+                        { id: 'poll', name: 'アンケート', icon: 'bi bi-bar-chart' },
+                        { id: 'files', name: 'ファイル共有', icon: 'bi bi-folder' },
+                        { id: 'members', name: 'メンバー一覧', icon: 'bi bi-people' }
                     ],
 
                     mockProjects: [
@@ -450,11 +451,11 @@
                         name: this.inviteUserId,
                         role: '一般メンバー'
                     });
-                    alert(`👥 Discordユーザー「${this.inviteUserId}」をこのコミュニティに招待・追加しました。`);
+                    alert(`Discordユーザー「${this.inviteUserId}」をこのコミュニティに招待・追加しました。`);
                     this.inviteUserId = '';
                 },
                 enterProject(proj) {
-                    alert(`🔗 プロジェクト「${proj.title}」の内部詳細画面へ進みます。`);
+                    alert(`プロジェクト「${proj.title}」の内部詳細画面へ進みます。`);
                 },
                 logout() { alert('ログアウトします'); }
             }
