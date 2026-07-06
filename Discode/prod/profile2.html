@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Noto Sans JP', sans-serif;
@@ -58,8 +59,8 @@
                             <p class="text-xs font-mono text-indigo-600">UID: {{ userProfile.discordId }}</p>
                         </div>
                     </div>
-                    <button @click="syncDiscordProfile" type="button" class="bg-white border border-indigo-200 hover:bg-indigo-100/50 text-indigo-700 font-bold text-sm px-3 py-1.5 rounded-xl transition-all">
-                        🔄 アバター・アカウント再同期
+                    <button @click="syncDiscordProfile" type="button" class="bg-white border border-indigo-200 hover:bg-indigo-100/50 text-indigo-700 font-bold text-sm px-3 py-1.5 rounded-xl transition-all inline-flex items-center gap-1.5">
+                        <i class="bi bi-arrow-repeat"></i>アバター・アカウント再同期
                     </button>
                 </div>
 
@@ -97,7 +98,7 @@
                         </div>
 
                         <div class="border-t border-gray-100 pt-4 space-y-3">
-                            <h4 class="font-bold text-gray-900 text-base">🤖 通知プレファレンス</h4>
+                            <h4 class="font-bold text-gray-900 text-base flex items-center gap-1.5"><i class="bi bi-robot"></i>通知プレファレンス</h4>
                             <p class="text-xs font-medium text-gray-500">自分自身が関わるタスクの変更時、どの通知を受け取るか設定します。</p>
                             
                             <div class="space-y-3">
@@ -182,10 +183,10 @@
                     this.userProfile.notifyOnRetake = this.editForm.notifyOnRetake;
                     this.userProfile.notifyOnDeadline = this.editForm.notifyOnDeadline;
 
-                    alert('💾 プロフィール設定を保存しました。\n変更内容は所属するすべてのプロジェクトに即時反映されます。');
+                    alert('プロフィール設定を保存しました。\n変更内容は所属するすべてのプロジェクトに即時反映されます。');
                 },
                 syncDiscordProfile() {
-                    alert('🔄 Discord APIから最新のグローバルアバターおよびユーザーネームを取得し、再同期しました。');
+                    alert('Discord APIから最新のグローバルアバターおよびユーザーネームを取得し、再同期しました。');
                     this.userProfile.avatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80';
                 },
                 backToWorkspace() {
