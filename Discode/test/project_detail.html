@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - Unified Professional Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, 'Noto Sans JP', sans-serif; }
+        [v-cloak] { display: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        /* 投票バーのアニメーション用 */
+        .vote-bar { transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen antialiased flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <div id="app" class="flex flex-col md:flex-row w-full h-full overflow-hidden" v-cloak>
+        
+        <header class="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shrink-0 z-50">
+            <div class="flex items-center space-x-2">
+                <div class="bg-gray-900 text-white p-1.5 rounded-lg">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                    </svg>
+                </div>
+                <span class="font-bold tracking-tight text-sm">SoundProgress</span>
+            </div>
+            <button @click="isMobileMenuOpen = !isMobileMenuOpen" class="text-gray-600 p-2 focus:outline-none hover:bg-gray-100 rounded-lg">
+                <i :class="isMobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'" class="text-xl"></i>
+            </button>
+        </header>
+
+        <aside :class="isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'" 
+               class="fixed md:static inset-y-0 left-0 w-64 bg-white border-r border-gray-200 flex flex-col justify-between shrink-0 z-40 transition-transform duration-200 ease-in-out h-full pt-16 md:pt-0 shadow-xl md:shadow-none">
+            
+            <div class="p-5 flex-grow overflow-y-auto custom-scrollbar space-y-6">
+                <div class="hidden md:flex items-center space-x-2 mb-2 cursor-pointer" @click="setGlobalView('home')">
+                    <div class="bg-gray-900 text-white p-1.5 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-lg font-black tracking-tight">SoundProgress</span>
+                </div>
+
+                <div class="space-y-1">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">Community</p>
+                    <button @click="setGlobalView('home')" :class="currentView === 'home' ? 'bg-gray-900 text-white shadow-md font-bold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full text-left px-3 py-2.5 text-sm rounded-lg transition-all flex items-center gap-2">
+                        <i class="bi bi-grid-1x2-fill"></i> ホーム
+                    </button>
+                    <button @click="setGlobalView('schedule')" :class="currentView === 'schedule' ? 'bg-gray-900 text-white shadow-md font-bold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full text-left px-3 py-2.5 text-sm rounded-lg transition-all flex items-center gap-2">
+                        <i class="bi bi-calendar-event"></i> 全体スケジュール
+                    </button>
+                    <button @click="setGlobalView('wiki')" :class="currentView === 'wiki' ? 'bg-gray-900 text-white shadow-md font-bold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full text-left px-3 py-2.5 text-sm rounded-lg transition-all flex items-center gap-2">
+                        <i class="bi bi-book-half"></i> 運営Wiki
+                    </button>
+                    <button @click="setGlobalView('members')" :class="currentView === 'members' ? 'bg-gray-900 text-white shadow-md font-bold' : 'text-gray-600 hover:bg-gray-50 font-medium'" class="w-full text-left px-3 py-2.5 text-sm rounded-lg transition-all flex items-center gap-2">
+                        <i class="bi bi-people-fill"></i> 全体メンバー
+                    </button>
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between px-2 mb-2 mt-4">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Projects</p>
+                    </div>
+                    <button v-for="proj in mockProjects" :key="proj.id" @click="enterProject(proj)" :class="currentView === 'project' && activeProject?.id === proj.id ? 'bg-indigo-50 border-indigo-200 text-indigo-700 font-bold' : 'border-transparent text-gray-600 hover:bg-gray-50 font-medium'" class="w-full text-left px-3 py-2.5 text-sm rounded-lg border transition-all truncate flex items-center gap-2">
+                        <span :class="proj.status === '要リテイク' ? 'bg-amber-500' : proj.status === '完了' ? 'bg-emerald-500' : 'bg-blue-500'" class="w-2 h-2 rounded-full shrink-0"></span>
+                        <span class="truncate">{{ proj.title }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between gap-2 shrink-0">
+                <div class="flex items-center space-x-2 truncate">
+                    <img class="w-8 h-8 rounded-full border border-white shadow-sm" :src="mockUser.avatar">
+                    <div class="flex flex-col truncate">
+                        <span class="text-[11px] font-bold text-gray-700 truncate">{{ mockUser.name }}</span>
+                        <span class="text-[9px] text-indigo-600 font-bold uppercase tracking-tighter">{{ mockUser.role }}</span>
+                    </div>
+                </div>
+                <button @click="logout" class="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden w-full">
+            
+            <nav v-if="currentView === 'project'" class="bg-white border-b border-gray-200 px-4 md:px-8 flex items-center justify-between gap-2 shrink-0 shadow-sm z-30">
+                <div class="flex space-x-1 overflow-x-auto custom-scrollbar">
+                    <button @click="projectMenu = 'summary'" :class="projectMenu === 'summary' ? 'text-gray-900 border-gray-900 font-bold' : 'text-gray-400 border-transparent font-medium'" class="px-4 py-3 border-b-2 text-sm transition-all whitespace-nowrap flex items-center gap-1.5">
+                        <i class="bi bi-info-circle-fill"></i> 概要
+                    </button>
+                    <button @click="projectMenu = 'tasks'" :class="projectMenu === 'tasks' ? 'text-gray-900 border-gray-900 font-bold' : 'text-gray-400 border-transparent font-medium'" class="px-4 py-3 border-b-2 text-sm transition-all whitespace-nowrap flex items-center gap-1.5">
+                        <i class="bi bi-kanban"></i> 進捗タスク
+                    </button>
+                    <button @click="projectMenu = 'assets'" :class="projectMenu === 'assets' ? 'text-gray-900 border-gray-900 font-bold' : 'text-gray-400 border-transparent font-medium'" class="px-4 py-3 border-b-2 text-sm transition-all whitespace-nowrap flex items-center gap-1.5">
+                        <i class="bi bi-cloud-arrow-up"></i> アセット提出
+                    </button>
+                    <button @click="projectMenu = 'survey'" :class="projectMenu === 'survey' ? 'text-gray-900 border-gray-900 font-bold' : 'text-gray-400 border-transparent font-medium'" class="px-4 py-3 border-b-2 text-sm transition-all whitespace-nowrap flex items-center gap-1.5">
+                        <i class="bi bi-patch-question"></i> アンケート
+                    </button>
+                    <button @click="projectMenu = 'members'" :class="projectMenu === 'members' ? 'text-gray-900 border-gray-900 font-bold' : 'text-gray-400 border-transparent font-medium'" class="px-4 py-3 border-b-2 text-sm transition-all whitespace-nowrap flex items-center gap-1.5">
+                        <i class="bi bi-people"></i> メンバー
+                    </button>
+                </div>
+            </nav>
+
+            <main class="flex-grow overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                
+                <div v-if="currentView === 'home'" class="max-w-6xl mx-auto space-y-8">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-5">
+                        <h2 class="text-2xl font-black text-gray-900">コミュニティ・ダッシュボード</h2>
+                        <button v-if="mockUser.role === 'admin'" @click="isModalOpen = true" class="bg-gray-900 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg hover:bg-gray-800">
+                            新規プロジェクト
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div v-for="(count, key) in summaryCounts" class="p-5 bg-white border border-gray-200 rounded-2xl shadow-sm">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ key === 'processing' ? '進行中' : key === 'retake' ? '要リテイク' : key === 'urgent' ? '締切直近' : '完了' }}</p>
+                            <p class="text-3xl font-black text-gray-900 mt-2">{{ count }}<span class="text-sm font-medium ml-1 text-gray-300">件</span></p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div v-for="proj in mockProjects" @click="enterProject(proj)" class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden hover:border-indigo-400 transition-all group cursor-pointer">
+                            <div class="h-32 bg-gray-100 relative">
+                                <img v-if="proj.thumbnail" :src="proj.thumbnail" class="w-full h-full object-cover">
+                                <span :class="getStatusClass(proj.status)" class="absolute top-3 right-3 text-[10px] font-black px-2 py-1 rounded shadow-sm border uppercase tracking-wider">
+                                    {{ proj.status }}
+                                </span>
+                            </div>
+                            <div class="p-5">
+                                <h4 class="font-bold text-gray-900 truncate">{{ proj.title }}</h4>
+                                <div class="mt-4 w-full bg-gray-50 h-1 rounded-full overflow-hidden">
+                                    <div class="bg-gray-900 h-1 rounded-full" :style="{ width: (proj.completedTasks / proj.totalTasks * 100) + '%' }"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'project'" class="max-w-6xl mx-auto space-y-6">
+                    
+                    <div v-if="projectMenu === 'summary'" class="space-y-6">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-gray-200 p-6 rounded-3xl shadow-sm">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span :class="getStatusClass(activeProject.status)" class="text-[10px] font-black px-2 py-0.5 rounded border shadow-sm uppercase tracking-widest">{{ activeProject.status }}</span>
+                                    <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Project Overview</span>
+                                </div>
+                                <h2 class="text-3xl font-black text-gray-900 tracking-tight leading-tight">{{ activeProject.title }}</h2>
+                                <p class="text-xs font-medium text-gray-500 flex items-center gap-3 pt-1">
+                                    <span class="font-mono bg-gray-50 px-2 py-0.5 rounded border border-gray-100">DUE: {{ activeProject.dueDate }} (残り {{ activeProject.remainingDays }} 日)</span>
+                                    <span>•</span>
+                                    <span>Team: {{ activeProject.members.length }} 名</span>
+                                </p>
+                            </div>
+                            <div class="text-right shrink-0 border-l-0 md:border-l border-gray-100 pl-0 md:pl-8">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Overall Progress</span>
+                                <p class="text-4xl font-black text-gray-900 font-mono">{{ Math.round(activeProject.completedTasks / activeProject.totalTasks * 100) }}<span class="text-lg font-normal text-gray-400 ml-1">%</span></p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm flex flex-col justify-between min-h-[300px]">
+                                <div>
+                                    <div class="flex justify-between items-start mb-4">
+                                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-image"></i>Latest Visual</p>
+                                        <span class="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-2 py-0.5 rounded uppercase">
+                                            {{ activeProject.latestAssets.image.status }}
+                                        </span>
+                                    </div>
+                                    <h3 class="text-sm font-bold text-gray-900 mt-1 truncate">{{ activeProject.latestAssets.image.title }}</h3>
+                                </div>
+                                <div class="my-4 h-44 bg-gray-100 rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
+                                    <img :src="activeProject.latestAssets.image.url" class="w-full h-full object-cover opacity-90">
+                                </div>
+                                <p class="text-[10px] font-mono text-gray-400 truncate">FILE: {{ activeProject.latestAssets.image.filename }}</p>
+                            </div>
+
+                            <div class="lg:col-span-2 bg-gray-900 text-white border border-gray-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between min-h-[300px]">
+                                <div>
+                                    <div class="flex justify-between items-start mb-6">
+                                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-wider flex items-center gap-1.5"><i class="bi bi-music-note-beamed"></i>Latest Master</p>
+                                        <div class="flex gap-2">
+                                            <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-black px-2 py-0.5 rounded uppercase">
+                                                {{ activeProject.latestAssets.audio.status }}
+                                            </span>
+                                            <button class="text-[10px] bg-gray-800 hover:bg-gray-700 text-gray-300 px-2 py-0.5 rounded-lg transition-colors font-black inline-flex items-center gap-1"><i class="bi bi-file-zip"></i>DL ALL</button>
+                                        </div>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-gray-100 truncate">{{ activeProject.latestAssets.audio.title }}</h3>
+                                </div>
+
+                                <div class="my-6 space-y-4">
+                                    <div class="flex items-center space-x-4">
+                                        <button class="w-12 h-12 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 transition-all font-bold text-xl">
+                                            <i class="bi bi-play-fill ml-0.5"></i>
+                                        </button>
+                                        <div class="flex-grow space-y-2">
+                                            <div class="h-10 bg-gray-800/80 rounded-xl flex items-end justify-between px-3 pb-1 gap-[2px] relative overflow-hidden border border-gray-700">
+                                                <div v-for="h in [40,60,30,80,90,70,50,80,60,40,70,90,100,60,40,80,50,30,60,80,40,70,50,30,60,40,80]" :style="{ height: h + '%' }" class="w-full bg-indigo-500/40 rounded-full"></div>
+                                                <div class="absolute left-0 top-0 bottom-0 bg-indigo-500/10 border-r border-indigo-500" style="width: 35%;"></div>
+                                            </div>
+                                            <div class="flex justify-between font-mono text-[10px] text-gray-500 uppercase tracking-widest">
+                                                <span>{{ activeProject.latestAssets.audio.filename }}</span>
+                                                <span class="text-indigo-400 font-bold">{{ activeProject.latestAssets.audio.duration }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pt-4 border-t border-gray-800">
+                                    <p class="text-[10px] text-gray-500">直近の決定事項: 07/07 23:00 以降、ボーカルの再録は原則不可とします。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="projectMenu === 'tasks'" class="space-y-6">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+                            <h3 class="font-black text-lg text-gray-900">工程マイルストーン</h3>
+                            <div v-if="mockUser.role === 'admin'">
+                                <button class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold px-3 py-1.5 rounded-lg border border-gray-200 transition-all">
+                                    ＋ カテゴリを追加
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-3">
+                            <div v-for="cat in activeProject.categories" :key="cat.id" @click="openModal(cat)" 
+                                 class="bg-white border rounded-3xl p-5 flex items-center gap-6 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer group"
+                                 :class="cat.status === '完了' ? 'border-emerald-100 bg-emerald-50/10' : (cat.status === '要リテイク' ? 'border-amber-200' : 'border-gray-100')">
+                                
+                                <div class="shrink-0">
+                                    <div :class="cat.status === '完了' ? 'bg-emerald-500 text-white shadow-emerald-100' : cat.status === '要リテイク' ? 'bg-amber-500 text-white shadow-amber-100' : 'bg-gray-100 text-gray-300'" class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-all shadow-lg">
+                                        <i :class="cat.status === '完了' ? 'bi bi-check-lg' : cat.status === '要リテイク' ? 'bi bi-exclamation-triangle' : 'bi bi-dash-lg'"></i>
+                                    </div>
+                                </div>
+
+                                <div class="flex-grow min-w-0">
+                                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                        <div>
+                                            <h4 class="font-bold text-gray-900 text-base group-hover:text-indigo-600 transition-colors" :class="cat.status === '完了' ? 'text-gray-400 line-through' : ''">{{ cat.title }}</h4>
+                                            <div class="flex items-center gap-3 mt-1.5">
+                                                <span class="text-[11px] font-bold text-gray-400 flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100"><i class="bi bi-person-fill"></i> {{ cat.assignees[0] }}</span>
+                                                <span class="text-[11px] font-bold text-gray-400 flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100"><i class="bi bi-clock-fill"></i> {{ activeProject.dueDate }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span v-if="cat.filename" class="text-[10px] font-mono font-bold text-gray-400 bg-gray-50 border border-gray-100 px-2.5 py-1.5 rounded-xl truncate max-w-[140px]">{{ cat.filename }}</span>
+                                            <span :class="getStatusClass(cat.status)" class="text-[10px] font-black px-3 py-1.5 rounded-xl border uppercase tracking-widest min-w-[90px] text-center shadow-sm">
+                                                {{ cat.status }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="projectMenu === 'assets'" class="space-y-6">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-4">
+                            <h3 class="font-bold text-gray-900">提出済み素材・マスター</h3>
+                            <button class="bg-gray-900 text-white text-[11px] font-bold px-4 py-2 rounded-xl shadow-lg">ファイルを提出</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div v-for="file in activeProject.sharedMaterials" class="p-5 border border-gray-100 rounded-3xl bg-white shadow-sm flex items-center justify-between hover:border-indigo-100 transition-all group">
+                                <div class="flex items-center gap-4 truncate">
+                                    <div class="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center text-2xl shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm"><i class="bi bi-file-earmark-music"></i></div>
+                                    <div class="truncate">
+                                        <p class="font-bold text-gray-800 text-sm truncate">{{ file.name }}</p>
+                                        <p class="text-[10px] text-gray-400 font-mono uppercase tracking-widest mt-0.5">{{ file.type }} • {{ file.size }}</p>
+                                    </div>
+                                </div>
+                                <button class="text-gray-300 hover:text-gray-900 transition-colors p-2"><i class="bi bi-download text-xl"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="projectMenu === 'survey'" class="space-y-6">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+                            <h3 class="font-bold text-gray-900">多数決・方向性アンケート</h3>
+                            <button class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold px-3 py-1.5 rounded-lg border border-gray-200">
+                                ＋ 新規アンケート
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div v-for="poll in mockPolls" :key="poll.id" class="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm space-y-6 transition-all hover:shadow-md">
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-black px-2 py-0.5 rounded tracking-widest uppercase">{{ poll.status }}</span>
+                                        <span class="text-[10px] font-bold text-gray-400">{{ poll.totalVotes }} 票回答済み</span>
+                                    </div>
+                                    <h4 class="font-black text-gray-900 text-xl leading-tight">{{ poll.question }}</h4>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <div v-for="opt in poll.options" :key="opt.label" class="space-y-2">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="font-bold text-gray-700">{{ opt.label }}</span>
+                                            <span class="font-mono font-black text-gray-900">{{ opt.percentage }}% ({{ opt.votes }} 票)</span>
+                                        </div>
+                                        <div class="relative w-full h-3 bg-gray-100 rounded-full overflow-hidden border border-gray-50">
+                                            <div class="vote-bar absolute left-0 top-0 h-full rounded-full shadow-sm" 
+                                                 :class="opt.isWinner ? 'bg-indigo-500' : 'bg-gray-300'"
+                                                 :style="{ width: opt.percentage + '%' }"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-4 flex gap-2">
+                                    <button class="flex-grow py-3 bg-gray-900 text-white rounded-2xl font-black text-xs shadow-lg hover:translate-y-[-1px] transition-all">投票・コメントする</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="projectMenu === 'members'" class="space-y-6">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+                            <h3 class="font-black text-lg text-gray-900">制作参加クリエイター</h3>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            <div v-for="m in activeProject.members" :key="m.name" class="p-5 bg-white border border-gray-100 rounded-3xl flex flex-col items-center text-center gap-3 shadow-sm transition-all hover:shadow-md">
+                                <div class="w-16 h-16 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center font-bold text-indigo-500 text-xl shadow-inner">{{ m.name.substring(0,1) }}</div>
+                                <div class="truncate w-full">
+                                    <p class="font-bold text-gray-900 text-sm truncate">{{ m.name }}</p>
+                                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">{{ m.role }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div v-if="currentView === 'schedule'" class="max-w-4xl mx-auto space-y-6">
+                    <h2 class="text-2xl font-black text-gray-900">全体スケジュール</h2>
+                    <div class="space-y-3">
+                        <div v-for="sch in globalSchedules" :key="sch.title" class="p-6 border border-gray-200 rounded-2xl bg-white shadow-sm flex justify-between items-center transition-all hover:shadow-md">
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-lg">{{ sch.title }}</h4>
+                                <p class="text-[10px] text-gray-400 font-mono mt-1 uppercase tracking-widest">{{ sch.date }}</p>
+                            </div>
+                            <span :class="sch.daysLeft <= 10 ? 'bg-red-50 text-red-600 border-red-100' : 'bg-gray-50 text-gray-500 border-gray-100'" class="px-5 py-2 border rounded-xl font-mono text-[11px] font-black shadow-sm uppercase tracking-wider">
+                                T-MINUS {{ sch.daysLeft }} DAYS
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'members'" class="max-w-4xl mx-auto space-y-6">
+                    <h2 class="text-2xl font-black text-gray-900 border-b border-gray-100 pb-4">サークル全体メンバー</h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div v-for="m in communityMembers" :key="m.name" class="p-5 bg-white border border-gray-100 rounded-3xl flex items-center gap-4 shadow-sm">
+                            <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-400">{{ m.name.substring(0,1) }}</div>
+                            <div class="truncate">
+                                <p class="font-bold text-gray-900 text-sm truncate">{{ m.name }}</p>
+                                <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest">{{ m.role }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'wiki'" class="max-w-4xl mx-auto bg-white border border-gray-200 rounded-3xl p-8 shadow-sm space-y-6">
+                    <h2 class="text-2xl font-black text-gray-900 border-b border-gray-100 pb-4">サークル運営Wiki</h2>
+                    <div class="prose prose-sm max-w-none text-gray-700 leading-relaxed font-mono whitespace-pre-wrap bg-slate-50 p-8 rounded-2xl border border-gray-100 text-sm shadow-inner">1. 提出締め切りは、各プロジェクト目標日の「前日23:59」を絶対厳守とします。
+2. リテイクが発生した場合はDiscordのBot通知を確認し、速やかにレスポンスをお願いします。
+3. 共有ファイル（ロゴなど）はSoundProgressへ集約します。</div>
+                </div>
+
+            </main>
+        </div>
+
+        <div v-if="isModalOpen && selectedCategory" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div @click="closeModal" class="fixed inset-0 bg-gray-950/40 backdrop-blur-md"></div>
+            <div class="bg-white rounded-[2rem] border border-gray-100 max-w-5xl w-full p-8 shadow-2xl relative z-10 flex flex-col max-h-[90vh]">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-5">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-2xl font-black text-gray-900">{{ selectedCategory.title }}</h3>
+                        <span :class="getStatusClass(selectedCategory.status)" class="text-[10px] font-black px-3 py-1 rounded-xl border uppercase tracking-widest shadow-sm">
+                            {{ selectedCategory.status }}
+                        </span>
+                    </div>
+                    <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition-all p-2"><i class="bi bi-x-lg text-2xl"></i></button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 overflow-y-auto custom-scrollbar pr-2">
+                    <div class="space-y-8 text-sm">
+                        <div class="space-y-3">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Instructions</label>
+                            <div class="bg-gray-50 p-6 rounded-3xl text-gray-700 leading-relaxed border border-gray-100 shadow-inner">
+                                {{ selectedCategory.instruction }}
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Assignees</label>
+                            <div class="flex gap-2">
+                                <span v-for="user in selectedCategory.assignees" class="bg-indigo-50 text-indigo-700 font-bold px-4 py-1.5 rounded-full text-xs border border-indigo-100 shadow-sm">{{ user }}</span>
+                            </div>
+                        </div>
+                        <div class="space-y-3 pt-4 border-t border-gray-50">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Update Status</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button class="py-3 bg-emerald-500 text-white rounded-2xl font-black text-xs shadow-lg shadow-emerald-100">完了としてマーク</button>
+                                <button class="py-3 bg-amber-500 text-white rounded-2xl font-black text-xs shadow-lg shadow-amber-100">修正を依頼する</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="bg-gray-900 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden">
+                            <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl"></div>
+                            
+                            <div class="flex items-center justify-between mb-6 relative">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white"><i class="bi bi-soundwave"></i></div>
+                                    <div class="truncate max-w-[180px]">
+                                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Previewing</p>
+                                        <p class="text-xs font-bold font-mono truncate">{{ selectedCategory.filename || 'Waiting for Upload...' }}</p>
+                                    </div>
+                                </div>
+                                <span class="text-[11px] font-black text-indigo-300 font-mono bg-gray-800 px-3 py-1 rounded-lg">00:45 / 03:45</span>
+                            </div>
+
+                            <div class="h-20 flex items-end gap-[3px] px-2 bg-black/40 rounded-2xl border border-gray-800 mb-6 py-2 overflow-hidden shadow-inner">
+                                <div v-for="h in [40,60,30,80,90,70,50,60,40,70,90,100,50,70,80,40,30,60,40,70,50,90,60,40,80,50,70,30,60,40,80,50,40,60,70]" :style="{ height: h + '%' }" class="w-full bg-indigo-500 rounded-full"></div>
+                            </div>
+
+                            <div class="flex gap-3">
+                                <button class="flex-grow bg-white text-gray-900 font-black py-3 rounded-2xl text-xs hover:bg-indigo-50 transition-all shadow-lg active:scale-95 uppercase tracking-widest">Master Preview</button>
+                                <button class="bg-gray-800 text-indigo-400 p-3 rounded-2xl hover:bg-gray-700 transition-colors"><i class="bi bi-download"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Retake Comments</label>
+                            <div class="bg-gray-50 border border-gray-100 p-6 rounded-3xl text-xs space-y-5 max-h-56 overflow-y-auto custom-scrollbar shadow-inner">
+                                <div v-for="retake in selectedCategory.retakeHistory" class="space-y-2 group">
+                                    <div class="flex justify-between items-center font-bold">
+                                        <span class="text-amber-600 flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-md"><i class="bi bi-clock-fill"></i> {{ retake.timestamp }}</span>
+                                        <span class="text-gray-400 uppercase text-[9px] tracking-widest">By {{ retake.author }}</span>
+                                    </div>
+                                    <p class="text-gray-700 leading-relaxed font-medium bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">{{ retake.text }}</p>
+                                </div>
+                                <div v-if="selectedCategory.retakeHistory.length === 0" class="text-center py-6 text-gray-300 italic">リテイク指示はありません</div>
+                            </div>
+                            <div class="flex gap-2 pt-2">
+                                <input type="text" placeholder="修正箇所と内容を記載..." class="flex-grow bg-white border border-gray-200 rounded-2xl px-5 py-4 text-xs outline-none focus:ring-2 focus:ring-indigo-100 transition-all shadow-sm">
+                                <button class="bg-gray-900 text-white p-4 rounded-2xl shadow-xl hover:bg-black transition-all active:scale-95"><i class="bi bi-send-fill"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                return {
+                    currentView: 'home',
+                    projectMenu: 'summary', // 概要タブをデフォルトに設定
+                    activeProject: null,
+                    isMobileMenuOpen: false,
+                    isModalOpen: false,
+                    selectedCategory: null,
+                    selectedStatusFilter: 'すべて',
+                    currentCommunityName: 'ボカロPサークルX',
+                    
+                    mockUser: {
+                        name: 'タロウ_ボカロP',
+                        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                        role: 'admin'
+                    },
+
+                    // アンケートデータの改善
+                    mockPolls: [
+                        { id: 1, question: 'イラストの背景方向性について', status: '回答受付中', totalVotes: 4, options: [
+                            { label: 'A: サイバーパンク・夜の街', votes: 3, percentage: 75, isWinner: true },
+                            { label: 'B: ノスタルジック・放課後', votes: 1, percentage: 25, isWinner: false }
+                        ]},
+                        { id: 2, question: 'Bメロのシンセの音色', status: '完了', totalVotes: 5, options: [
+                            { label: '鋭いデジタルサウンド', votes: 4, percentage: 80, isWinner: true },
+                            { label: '柔らかいアナログ系', votes: 1, percentage: 20, isWinner: false }
+                        ]}
+                    ],
+
+                    mockProjects: [
+                        { id: 1, title: '新曲「ハルノウタ」リード曲', thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80', status: '進行中', completedTasks: 2, totalTasks: 5, remainingDays: 41, discordMainChannel: 'ハルノウタ-制作',
+                          latestAssets: {
+                              image: { title: '第一弾メインビジュアル', status: '確認中', filename: 'haru_sketch_v2.png', url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80' },
+                              audio: { title: 'サビ調整ボーカルMIX', status: '要リテイク', filename: 'haru_mix_v3_master.wav', duration: '03:45' }
+                          },
+                          categories: [
+                              { id: 1, title: 'インスト・パラ構成', assignees: ['サトウ（ボカロP）'], filename: 'haru_inst_v2.wav', status: '完了', instruction: 'BPM132、キーはAm固定。ストリングスを厚めで構築。', retakeHistory: [] },
+                              { id: 2, title: 'ボーカルMIX・マスタリング', assignees: ['スズキ（Eng）'], filename: 'haru_mix_v3_master.wav', status: '要リテイク', instruction: 'J-POP寄りの広がりのあるMIXを。', retakeHistory: [{ id: 1, author: 'Haru', timestamp: '00:45', text: 'サビのボーカルがバックのギタートラックに埋もれ気味なので、2kHz付近を少し前に出してください。' }] },
+                              { id: 3, title: 'メインイラスト・背景', assignees: ['タナカ（絵師）'], filename: 'haru_sketch_v2.png', status: '進行中', instruction: '春の暖かさと切なさが同居する。ネオンピンク基調。', retakeHistory: [] },
+                              { id: 4, title: '動画エンコード', assignees: ['ワタナベ（映像）'], filename: '', status: '未着手', instruction: 'タイポグラフィメインのリリックビデオ。', retakeHistory: [] },
+                              { id: 5, title: 'プロモーション素材', assignees: ['タロウ'], filename: '', status: '未着手', instruction: 'Twitter(X)告知用の15秒クロスフェード。', retakeHistory: [] }
+                          ],
+                          sharedMaterials: [
+                            { name: 'ハルノウタ_歌詞案_FIX.txt', type: 'text', size: '12 KB' },
+                            { name: 'haru_offvocal_BPM132.wav', type: 'audio', size: '42.1 MB' }
+                          ],
+                          members: [{ name: 'タロウ_ボカロP', role: '管理者' }, { name: 'サトウ（ボカロP）', role: '作曲家' }, { name: 'スズキ（Eng）', role: 'エンジニア' }, { name: 'タナカ（絵師）', role: 'イラストレーター' }]
+                        }
+                    ],
+
+                    communityMembers: [
+                        { name: 'タロウ_ボカロP', role: '管理者' },
+                        { name: 'サトウ（ボカロP）', role: 'クリエイター' },
+                        { name: 'スズキ（Eng）', role: 'エンジニア' },
+                        { name: 'タナカ（絵師）', role: 'イラストレーター' },
+                        { name: 'ワタナベ（映像）', role: '映像作家' }
+                    ],
+
+                    globalSchedules: [
+                        { title: '夏コミ(C108) マスターアップ', date: '2026-08-01', daysLeft: 27 },
+                        { title: 'ボカロコンピ寄稿締切', date: '2026-07-25', daysLeft: 20 }
+                    ]
+                }
+            },
+            computed: {
+                summaryCounts() {
+                    return {
+                        processing: this.mockProjects.filter(p => p.status === '進行中').length,
+                        retake: this.mockProjects.filter(p => p.status === '要リテイク').length,
+                        urgent: this.mockProjects.filter(p => p.remainingDays <= 7 && p.status !== '完了').length,
+                        completed: this.mockProjects.filter(p => p.status === '完了').length
+                    }
+                }
+            },
+            methods: {
+                setGlobalView(view) {
+                    this.currentView = view;
+                    this.activeProject = null;
+                    this.isMobileMenuOpen = false;
+                },
+                enterProject(proj) {
+                    this.currentView = 'project';
+                    this.projectMenu = 'summary'; // デフォルトで概要を表示
+                    this.activeProject = proj;
+                    this.isMobileMenuOpen = false;
+                },
+                openModal(cat) {
+                    this.selectedCategory = cat;
+                    this.isModalOpen = true;
+                },
+                closeModal() {
+                    this.isModalOpen = false;
+                    this.selectedCategory = null;
+                },
+                getStatusClass(status) {
+                    switch (status) {
+                        case '完了': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                        case '進行中': return 'bg-blue-50 text-blue-700 border-blue-100';
+                        case '要リテイク': return 'bg-amber-50 text-amber-700 border-amber-200';
+                        default: return 'bg-gray-50 text-gray-500 border-gray-100';
+                    }
+                },
+                logout() { alert('ログアウトします'); }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

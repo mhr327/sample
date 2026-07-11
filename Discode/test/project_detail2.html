@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - Professional Unified Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    borderRadius: {
+                        'xl': '12px', // カード等
+                        'lg': '8px',  // ボタン等
+                    },
+                    colors: {
+                        primary: '#4f46e5', // Indigo 600
+                        'primary-dark': '#4338ca',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Outfit', 'Noto Sans JP', sans-serif; }
+        [v-cloak] { display: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .font-mono { font-family: 'Outfit', monospace; }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-900 min-h-screen antialiased flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <div id="app" class="flex flex-col md:flex-row w-full h-full overflow-hidden" v-cloak>
+        
+        <header class="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 z-50">
+            <div class="flex items-center space-x-2">
+                <div class="bg-slate-900 text-white p-1.5 rounded-lg">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                    </svg>
+                </div>
+                <span class="font-bold tracking-tight text-sm">SoundProgress</span>
+            </div>
+            <button @click="isMobileMenuOpen = !isMobileMenuOpen" class="text-slate-600 p-2 hover:bg-slate-100 rounded-lg">
+                <i :class="isMobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'" class="text-xl"></i>
+            </button>
+        </header>
+
+        <aside :class="isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'" 
+               class="fixed md:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 z-40 transition-transform duration-200 ease-in-out h-full pt-16 md:pt-0">
+            
+            <div class="p-5 flex-grow overflow-y-auto custom-scrollbar space-y-6">
+                <div class="hidden md:flex items-center space-x-2 mb-2 cursor-pointer" @click="setGlobalView('home')">
+                    <div class="bg-slate-900 text-white p-1.5 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-lg font-black tracking-tight">SoundProgress</span>
+                </div>
+
+                <div class="space-y-1">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">Community</p>
+                    <button @click="setGlobalView('home')" :class="currentView === 'home' ? 'bg-slate-900 text-white shadow-sm font-bold' : 'text-slate-600 hover:bg-slate-50 font-medium'" class="w-full text-left px-3 py-2 text-sm rounded-lg transition-all flex items-center gap-2">
+                        <i class="bi bi-house-door-fill"></i> ホーム
+                    </button>
+                    <button @click="setGlobalView('schedule')" :class="currentView === 'schedule' ? 'bg-slate-900 text-white shadow-sm font-bold' : 'text-slate-600 hover:bg-slate-50 font-medium'" class="w-full text-left px-3 py-2 text-sm rounded-lg transition-all flex items-center gap-2">
+                        <i class="bi bi-calendar-event-fill"></i> スケジュール
+                    </button>
+                    <button @click="setGlobalView('wiki')" :class="currentView === 'wiki' ? 'bg-slate-900 text-white shadow-sm font-bold' : 'text-slate-600 hover:bg-slate-50 font-medium'" class="w-full text-left px-3 py-2 text-sm rounded-lg transition-all flex items-center gap-2">
+                        <i class="bi bi-journal-text"></i> 運営Wiki
+                    </button>
+                    <button @click="setGlobalView('members')" :class="currentView === 'members' ? 'bg-slate-900 text-white shadow-sm font-bold' : 'text-slate-600 hover:bg-slate-50 font-medium'" class="w-full text-left px-3 py-2 text-sm rounded-lg transition-all flex items-center gap-2">
+                        <i class="bi bi-people-fill"></i> 全体メンバー
+                    </button>
+                </div>
+
+                <div class="space-y-1 pt-4">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">Active Projects</p>
+                    <button v-for="proj in mockProjects" :key="proj.id" @click="enterProject(proj)" :class="currentView === 'project' && activeProject?.id === proj.id ? 'bg-indigo-50 border-indigo-100 text-indigo-700 font-bold' : 'border-transparent text-slate-600 hover:bg-slate-50 font-medium'" class="w-full text-left px-3 py-2.5 text-sm rounded-lg border transition-all truncate flex items-center gap-2">
+                        <span :class="proj.status === '要リテイク' ? 'bg-amber-500' : proj.status === '完了' ? 'bg-emerald-500' : 'bg-primary'" class="w-2 h-2 rounded-full shrink-0"></span>
+                        <span class="truncate">{{ proj.title }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between gap-2 shrink-0">
+                <div class="flex items-center space-x-2 truncate">
+                    <img class="w-8 h-8 rounded-full border border-white shadow-sm" :src="mockUser.avatar">
+                    <div class="flex flex-col truncate">
+                        <span class="text-xs font-bold text-slate-700 truncate">{{ mockUser.name }}</span>
+                        <span class="text-[9px] text-indigo-600 font-black uppercase tracking-tighter">{{ mockUser.role }}</span>
+                    </div>
+                </div>
+                <button @click="logout" class="p-2 text-slate-400 hover:text-red-500 transition-colors">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden w-full">
+            
+            <nav v-if="currentView === 'project'" class="bg-white border-b border-slate-200 px-4 md:px-8 flex items-center justify-between gap-2 shrink-0 shadow-sm z-30">
+                <div class="flex space-x-1 overflow-x-auto custom-scrollbar">
+                    <button @click="projectMenu = 'summary'" :class="projectMenu === 'summary' ? 'text-slate-900 border-slate-900 font-bold' : 'text-slate-400 border-transparent hover:text-slate-600'" class="px-4 py-3 border-b-2 text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5">
+                        概要
+                    </button>
+                    <button @click="projectMenu = 'tasks'" :class="projectMenu === 'tasks' ? 'text-slate-900 border-slate-900 font-bold' : 'text-slate-400 border-transparent hover:text-slate-600'" class="px-4 py-3 border-b-2 text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5">
+                        進捗タスク
+                    </button>
+                    <button @click="projectMenu = 'assets'" :class="projectMenu === 'assets' ? 'text-slate-900 border-slate-900 font-bold' : 'text-slate-400 border-transparent hover:text-slate-600'" class="px-4 py-3 border-b-2 text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5">
+                        提出素材
+                    </button>
+                    <button @click="projectMenu = 'survey'" :class="projectMenu === 'survey' ? 'text-slate-900 border-slate-900 font-bold' : 'text-slate-400 border-transparent hover:text-slate-600'" class="px-4 py-3 border-b-2 text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5">
+                        アンケート
+                    </button>
+                    <button @click="projectMenu = 'members'" :class="projectMenu === 'members' ? 'text-slate-900 border-slate-900 font-bold' : 'text-slate-400 border-transparent hover:text-slate-600'" class="px-4 py-3 border-b-2 text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5">
+                        メンバー
+                    </button>
+                </div>
+                <div class="hidden sm:block">
+                    <a :href="'https://discord.com/channels/mock/' + activeProject?.discordMainChannel" target="_blank" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">
+                        <i class="bi bi-discord text-sm"></i> DISCORD
+                    </a>
+                </div>
+            </nav>
+
+            <main class="flex-grow overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                
+                <div v-if="currentView === 'home'" class="max-w-6xl mx-auto space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-5">
+                        <h2 class="text-2xl font-black text-slate-900 tracking-tight">ダッシュボード</h2>
+                        <button v-if="mockUser.role === 'admin'" @click="isModalOpen = true" class="bg-slate-900 text-white font-bold text-sm px-5 py-2.5 rounded-lg shadow-lg hover:bg-slate-800 transition-all">
+                            新規プロジェクト作成
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div v-for="(count, key) in summaryCounts" class="p-5 bg-white border border-slate-200 rounded-xl shadow-sm">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ key === 'processing' ? '進行中' : key === 'retake' ? '要リテイク' : key === 'urgent' ? '締切直近' : '完了' }}</p>
+                            <p class="text-3xl font-black text-slate-900 mt-2 font-mono">{{ count }}<span class="text-xs font-medium ml-1 text-slate-300">件</span></p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+                        <div v-for="proj in mockProjects" @click="enterProject(proj)" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden hover:border-primary transition-all group cursor-pointer flex flex-col">
+                            <div class="h-28 bg-slate-100 relative">
+                                <img v-if="proj.thumbnail" :src="proj.thumbnail" class="w-full h-full object-cover">
+                                <span :class="getStatusClass(proj.status)" class="absolute top-3 right-3 text-[10px] font-black px-2 py-1 rounded shadow-sm border uppercase tracking-wider">
+                                    {{ proj.status }}
+                                </span>
+                            </div>
+                            <div class="p-5">
+                                <h4 class="font-bold text-slate-900 truncate">{{ proj.title }}</h4>
+                                <div class="mt-4 w-full bg-slate-50 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-primary h-full transition-all duration-700" :style="{ width: (proj.completedTasks / proj.totalTasks * 100) + '%' }"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'project'" class="max-w-6xl mx-auto">
+                    
+                    <div v-if="projectMenu === 'summary'" class="space-y-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-8 flex flex-col justify-between">
+                                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-2">
+                                            <span :class="getStatusClass(activeProject.status)" class="text-[10px] font-black px-2 py-0.5 rounded border uppercase tracking-widest">{{ activeProject.status }}</span>
+                                            <span class="text-xs font-bold text-slate-400 tracking-widest">CURRENT STATUS</span>
+                                        </div>
+                                        <h2 class="text-3xl font-black text-slate-900 tracking-tight leading-tight">{{ activeProject.title }}</h2>
+                                    </div>
+                                    <div class="text-left md:text-right shrink-0">
+                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project Progress</span>
+                                        <p class="text-5xl font-black text-slate-900 font-mono">{{ Math.round(activeProject.completedTasks / activeProject.totalTasks * 100) }}<span class="text-xl font-normal text-slate-300 ml-1">%</span></p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden shadow-inner">
+                                        <div class="bg-primary h-full transition-all duration-1000" :style="{ width: (activeProject.completedTasks / activeProject.totalTasks * 100) + '%' }"></div>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-slate-400">
+                                        <span>DUE: {{ activeProject.dueDate }}</span>
+                                        <span class="text-red-500">残り {{ activeProject.remainingDays }} 日</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-900 rounded-xl p-6 text-white shadow-xl">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center"><i class="bi bi-play-fill text-xl"></i></div>
+                                            <div class="truncate max-w-[200px]">
+                                                <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Latest Master</p>
+                                                <p class="text-xs font-bold truncate">{{ activeProject.latestAssets.audio.title }}</p>
+                                            </div>
+                                        </div>
+                                        <span class="text-[11px] font-black text-slate-500 font-mono bg-slate-800 px-2 py-1 rounded">{{ activeProject.latestAssets.audio.duration }}</span>
+                                    </div>
+                                    <div class="h-10 flex items-end gap-[2px] opacity-40 px-1">
+                                        <div v-for="h in [40,60,30,80,90,70,50,60,40,70,90,100,50,70,80,40,30,60,40,70,50,90,60,40,80,50,70,30,60,40,80,50,40,60,70]" :style="{ height: h + '%' }" class="w-full bg-indigo-400 rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-6">
+                                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Latest Illustration</p>
+                                        <span class="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black px-1.5 py-0.5 rounded">{{ activeProject.latestAssets.image.status }}</span>
+                                    </div>
+                                    <div class="h-40 bg-slate-50 rounded-lg overflow-hidden shadow-inner flex items-center justify-center">
+                                        <img :src="activeProject.latestAssets.image.url" class="w-full h-full object-cover opacity-90">
+                                    </div>
+                                    <p class="text-[11px] font-bold text-slate-900 truncate">{{ activeProject.latestAssets.image.title }}</p>
+                                </div>
+
+                                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project Team</p>
+                                    <div class="flex flex-col gap-3">
+                                        <div v-for="m in activeProject.members.slice(0,3)" class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center font-bold text-slate-400 text-xs">{{ m.name.substring(0,1) }}</div>
+                                            <div class="truncate">
+                                                <p class="text-[11px] font-bold text-slate-800 leading-none">{{ m.name }}</p>
+                                                <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">{{ m.role }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button @click="projectMenu = 'members'" class="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-500 font-bold text-[10px] rounded-lg transition-all">VIEW ALL TEAM</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="projectMenu === 'tasks'" class="space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 pb-4 mb-2">
+                            <h3 class="font-black text-lg text-slate-900">工程マイルストーン</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <div v-for="cat in activeProject.categories" :key="cat.id" @click="openModal(cat)" 
+                                 class="bg-white border rounded-xl p-5 flex items-center gap-6 shadow-sm hover:border-primary transition-all cursor-pointer group"
+                                 :class="cat.status === '完了' ? 'border-emerald-100' : (cat.status === '要リテイク' ? 'border-amber-200 bg-amber-50/5' : 'border-slate-200')">
+                                
+                                <div class="shrink-0">
+                                    <div :class="cat.status === '完了' ? 'bg-emerald-500 text-white' : cat.status === '要リテイク' ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-300'" class="w-12 h-12 rounded-lg flex items-center justify-center text-xl transition-all shadow-sm">
+                                        <i :class="cat.status === '完了' ? 'bi bi-check-lg' : cat.status === '要リテイク' ? 'bi bi-exclamation-triangle' : 'bi bi-dash-lg'"></i>
+                                    </div>
+                                </div>
+
+                                <div class="flex-grow min-w-0">
+                                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                                        <div>
+                                            <h4 class="font-bold text-slate-900 text-base group-hover:text-primary transition-colors">{{ cat.title }}</h4>
+                                            <div class="flex items-center gap-3 mt-1 text-[11px] font-bold text-slate-400">
+                                                <span class="flex items-center gap-1"><i class="bi bi-person-fill"></i> {{ cat.assignees[0] }}</span>
+                                                <span class="flex items-center gap-1"><i class="bi bi-clock-fill"></i> {{ activeProject.dueDate }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span v-if="cat.filename" class="hidden md:inline text-[10px] font-mono font-bold text-slate-400 bg-slate-50 border border-slate-100 px-2 py-1 rounded truncate max-w-[120px]">{{ cat.filename }}</span>
+                                            <span :class="getStatusClass(cat.status)" class="text-[10px] font-black px-3 py-1 rounded-lg border uppercase tracking-widest min-w-[85px] text-center">
+                                                {{ cat.status }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="projectMenu === 'assets'" class="space-y-6">
+                        <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+                            <h3 class="font-bold text-slate-900 uppercase text-sm tracking-widest">Project Assets</h3>
+                            <button class="bg-slate-900 text-white text-[10px] font-bold px-4 py-2 rounded-lg shadow-lg">UPLOAD NEW ASSET</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div v-for="file in activeProject.sharedMaterials" class="p-4 border border-slate-200 rounded-xl bg-white shadow-sm flex items-center justify-between hover:border-indigo-100 group transition-all">
+                                <div class="flex items-center gap-4 truncate">
+                                    <div class="w-10 h-10 bg-indigo-50 text-indigo-500 rounded-lg flex items-center justify-center text-xl shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all"><i class="bi bi-file-earmark-arrow-down"></i></div>
+                                    <div class="truncate">
+                                        <p class="font-bold text-slate-800 text-sm truncate">{{ file.name }}</p>
+                                        <p class="text-[10px] text-slate-400 font-mono uppercase tracking-widest mt-0.5">{{ file.type }} • {{ file.size }}</p>
+                                    </div>
+                                </div>
+                                <button class="text-slate-300 hover:text-slate-900 transition-colors p-2"><i class="bi bi-download text-lg"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="projectMenu === 'survey'" class="space-y-6">
+                        <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+                            <h3 class="font-bold text-slate-900 uppercase text-sm tracking-widest">Decisions & Polls</h3>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div v-for="poll in mockPolls" :key="poll.id" class="bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">{{ poll.status }}</span>
+                                        <span class="text-[10px] font-bold text-slate-400">{{ poll.totalVotes }} VOTES</span>
+                                    </div>
+                                    <h4 class="font-black text-slate-900 text-xl leading-tight">{{ poll.question }}</h4>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <div v-for="opt in poll.options" :key="opt.label" class="space-y-1.5">
+                                        <div class="flex justify-between items-center text-[11px] font-bold">
+                                            <span class="text-slate-700">{{ opt.label }}</span>
+                                            <span class="text-slate-900 font-mono">{{ opt.percentage }}%</span>
+                                        </div>
+                                        <div class="relative w-full h-3 bg-slate-50 rounded-full overflow-hidden border border-slate-100 shadow-inner">
+                                            <div class="absolute left-0 top-0 h-full rounded-full transition-all duration-1000" 
+                                                 :class="opt.isWinner ? 'bg-primary' : 'bg-slate-300'"
+                                                 :style="{ width: opt.percentage + '%' }"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-4 flex gap-2">
+                                    <button class="flex-grow py-3 bg-slate-900 text-white rounded-lg font-black text-[10px] shadow-lg hover:translate-y-[-1px] transition-all uppercase tracking-widest">Submit Vote</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="projectMenu === 'members'" class="space-y-6">
+                        <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+                            <h3 class="font-black text-lg text-slate-900">制作メンバー</h3>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            <div v-for="m in activeProject.members" :key="m.name" class="p-5 bg-white border border-slate-200 rounded-xl flex flex-col items-center text-center gap-3 shadow-sm hover:shadow-md transition-all">
+                                <div class="w-14 h-14 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center font-bold text-indigo-500 text-xl shadow-inner">{{ m.name.substring(0,1) }}</div>
+                                <div class="truncate w-full">
+                                    <p class="font-bold text-slate-900 text-sm truncate">{{ m.name }}</p>
+                                    <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-1">{{ m.role }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div v-if="currentView === 'schedule'" class="max-w-4xl mx-auto space-y-6">
+                    <h2 class="text-2xl font-black text-slate-900 border-b border-slate-200 pb-5">全体スケジュール</h2>
+                    <div class="space-y-3">
+                        <div v-for="sch in globalSchedules" :key="sch.title" class="p-6 border border-slate-200 rounded-xl bg-white shadow-sm flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-lg">{{ sch.title }}</h4>
+                                <p class="text-[10px] font-mono text-slate-400 mt-1 uppercase tracking-widest">{{ sch.date }}</p>
+                            </div>
+                            <span :class="sch.daysLeft <= 10 ? 'bg-red-50 text-red-600 border-red-100' : 'bg-slate-50 text-slate-500 border-slate-100'" class="px-5 py-2 border rounded-lg font-mono text-[11px] font-black shadow-sm uppercase">
+                                T-MINUS {{ sch.daysLeft }} DAYS
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'members'" class="max-w-4xl mx-auto space-y-6">
+                    <h2 class="text-2xl font-black text-slate-900 border-b border-slate-200 pb-5">コミュニティメンバー</h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div v-for="m in communityMembers" :key="m.name" class="p-5 bg-white border border-slate-200 rounded-xl flex items-center gap-4 shadow-sm">
+                            <div class="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center font-bold text-slate-400">{{ m.name.substring(0,1) }}</div>
+                            <div class="truncate">
+                                <p class="font-bold text-slate-900 text-sm truncate">{{ m.name }}</p>
+                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ m.role }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'wiki'" class="max-w-4xl mx-auto bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
+                    <h2 class="text-2xl font-black text-slate-900 border-b border-slate-200 pb-5">運営Wiki</h2>
+                    <div class="prose prose-sm max-w-none text-slate-700 leading-relaxed font-mono whitespace-pre-wrap bg-slate-50 p-8 rounded-xl border border-slate-100 text-sm shadow-inner">1. 提出締め切りは、各プロジェクト目標日の「前日23:59」を絶対厳守とします。
+2. リテイクが発生した場合はDiscordのBot通知を確認し、速やかにレスポンスをお願いします。
+3. 共有ファイル（ロゴなど）はSoundProgressへ集約します。</div>
+                </div>
+
+            </main>
+        </div>
+
+        <div v-if="isModalOpen && selectedCategory" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div @click="closeModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-all"></div>
+            <div class="bg-white rounded-xl border border-slate-200 max-w-4xl w-full p-8 shadow-2xl relative z-10 flex flex-col max-h-[90vh] overflow-hidden">
+                <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-5">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-xl font-black text-slate-900">{{ selectedCategory.title }}</h3>
+                        <span :class="getStatusClass(selectedCategory.status)" class="text-[10px] font-black px-2.5 py-1 rounded border uppercase tracking-widest">
+                            {{ selectedCategory.status }}
+                        </span>
+                    </div>
+                    <button @click="closeModal" class="text-slate-400 hover:text-slate-600 transition-all p-2"><i class="bi bi-x-lg text-2xl"></i></button>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 overflow-y-auto custom-scrollbar pr-2">
+                    <div class="space-y-6 text-sm">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Instructions</label>
+                            <div class="bg-slate-50 p-5 rounded-lg text-slate-700 leading-relaxed border border-slate-100 shadow-inner">
+                                {{ selectedCategory.instruction }}
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assignees</label>
+                            <div class="flex gap-2">
+                                <span v-for="user in selectedCategory.assignees" class="bg-indigo-50 text-indigo-700 font-bold px-3 py-1 rounded border border-indigo-100 text-xs">{{ user }}</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2 pt-2 border-t border-slate-50">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Latest Version</label>
+                            <div class="p-4 bg-white border border-slate-100 rounded-lg flex items-center justify-between shadow-sm">
+                                <span class="font-mono text-xs font-bold text-slate-700 truncate"><i class="bi bi-file-earmark-text-fill mr-2 text-indigo-400"></i>{{ selectedCategory.filename || 'Waiting for upload...' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="bg-slate-900 rounded-xl p-6 text-white shadow-xl">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <i class="bi bi-soundwave text-indigo-400 text-xl"></i>
+                                    <span class="text-xs font-bold font-mono tracking-widest opacity-80">{{ selectedCategory.filename || 'PREVIEW' }}</span>
+                                </div>
+                                <span class="text-[10px] font-bold text-indigo-400">00:45 / 03:45</span>
+                            </div>
+                            <div class="h-16 flex items-end gap-[2.5px] px-2 bg-black/40 rounded-lg border border-slate-800 mb-4 py-2 overflow-hidden shadow-inner">
+                                <div v-for="h in [40,60,30,80,90,70,50,60,40,70,90,100,50,70,80,40,30,60,40,70,50,90,60,40,80,50,70,30,60,40]" :style="{ height: h + '%' }" class="w-full bg-indigo-500 rounded-full"></div>
+                            </div>
+                            <button class="w-full bg-white text-slate-900 font-black py-2.5 rounded-lg text-xs hover:bg-indigo-50 transition-all uppercase tracking-widest">Playback Master</button>
+                        </div>
+
+                        <div class="space-y-4">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Retake Comments</label>
+                            <div class="bg-slate-50 border border-slate-100 p-4 rounded-lg text-xs space-y-4 max-h-48 overflow-y-auto custom-scrollbar">
+                                <div v-for="retake in selectedCategory.retakeHistory" class="space-y-1">
+                                    <div class="flex justify-between items-center font-bold">
+                                        <span class="text-amber-600 flex items-center gap-1"><i class="bi bi-clock-fill"></i> {{ retake.timestamp }}</span>
+                                        <span class="text-slate-400 text-[9px] tracking-widest uppercase">By {{ retake.author }}</span>
+                                    </div>
+                                    <p class="text-slate-700 leading-relaxed font-medium bg-white p-3 rounded-lg border border-slate-100 shadow-sm">{{ retake.text }}</p>
+                                </div>
+                                <div v-if="selectedCategory.retakeHistory.length === 0" class="text-center py-4 text-slate-300 italic">リテイク指示はありません</div>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" placeholder="修正箇所と内容..." class="flex-grow bg-white border border-slate-200 rounded-lg px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-indigo-100 shadow-sm">
+                                <button class="bg-slate-900 text-white p-3 rounded-lg shadow-lg hover:bg-black transition-all"><i class="bi bi-send-fill"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                return {
+                    currentView: 'home',
+                    projectMenu: 'summary',
+                    activeProject: null,
+                    isMobileMenuOpen: false,
+                    isModalOpen: false,
+                    selectedCategory: null,
+                    selectedStatusFilter: 'すべて',
+                    currentCommunityName: 'ボカロPサークルX',
+                    
+                    mockUser: {
+                        name: 'タロウ_ボカロP',
+                        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80',
+                        role: 'admin'
+                    },
+
+                    mockPolls: [
+                        { id: 1, question: 'イラストの背景方向性について', status: '回答受付中', totalVotes: 4, options: [
+                            { label: 'A: サイバーパンク・夜の街', votes: 3, percentage: 75, isWinner: true },
+                            { label: 'B: ノスタルジック・放課後', votes: 1, percentage: 25, isWinner: false }
+                        ]},
+                        { id: 2, question: 'Bメロのシンセの音色', status: '完了', totalVotes: 5, options: [
+                            { label: '鋭いデジタルサウンド', votes: 4, percentage: 80, isWinner: true },
+                            { label: '柔らかいアナログ系', votes: 1, percentage: 20, isWinner: false }
+                        ]}
+                    ],
+
+                    mockProjects: [
+                        { id: 1, title: '新曲「ハルノウタ」リード曲', thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80', status: '進行中', completedTasks: 2, totalTasks: 5, remainingDays: 41, discordMainChannel: 'ハルノウタ-制作',
+                          latestAssets: {
+                              image: { title: '第一弾メインビジュアル', status: '確認中', filename: 'haru_sketch_v2.png', url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80' },
+                              audio: { title: 'サビ調整ボーカルMIX', status: '要リテイク', filename: 'haru_mix_v3_master.wav', duration: '03:45' }
+                          },
+                          categories: [
+                              { id: 1, title: 'インスト・パラ構成', assignees: ['サトウ（作曲）'], filename: 'haru_inst_v2.wav', status: '完了', instruction: 'BPM132、キーはAm固定。ストリングスを厚めで。', retakeHistory: [] },
+                              { id: 2, title: 'ボーカルMIX・マスタリング', assignees: ['スズキ（Eng）'], filename: 'haru_mix_v3_master.wav', status: '要リテイク', instruction: 'J-POP寄りの広がりのあるMIX。', retakeHistory: [{ id: 1, author: 'Haru', timestamp: '00:45', text: 'サビのボーカルが埋もれ気味なので2kHz付近を微調整してください。' }] },
+                              { id: 3, title: 'メインイラスト・背景', assignees: ['タナカ（絵師）'], filename: 'haru_sketch_v2.png', status: '進行中', instruction: '夜の街並み。ネオン調で。', retakeHistory: [] },
+                              { id: 4, title: '動画エンコード', assignees: ['ワタナベ（映像）'], filename: '', status: '未着手', instruction: 'リリックアニメーション重視。', retakeHistory: [] },
+                              { id: 5, title: '告知用素材制作', assignees: ['タロウ'], filename: '', status: '未着手', instruction: 'SNS告知用のクロスフェード。', retakeHistory: [] }
+                          ],
+                          sharedMaterials: [
+                            { name: 'ハルノウタ_歌詞案_FIX.txt', type: 'text', size: '12 KB' },
+                            { name: 'haru_offvocal_BPM132.wav', type: 'audio', size: '42.1 MB' }
+                          ],
+                          members: [{ name: 'タロウ_ボカロP', role: '管理者' }, { name: 'サトウ（ボカロP）', role: '作曲' }, { name: 'スズキ（Eng）', role: 'エンジニア' }, { name: 'タナカ（絵師）', role: '絵師' }]
+                        }
+                    ],
+
+                    communityMembers: [
+                        { name: 'タロウ_ボカロP', role: '管理者' },
+                        { name: 'サトウ（作曲）', role: 'クリエイター' },
+                        { name: 'スズキ（Eng）', role: 'エンジニア' },
+                        { name: 'タナカ（絵師）', role: '絵師' },
+                        { name: 'ワタナベ（映像）', role: '映像' }
+                    ],
+
+                    globalSchedules: [
+                        { title: '夏コミ(C108) マスターアップ', date: '2026-08-01', daysLeft: 27 },
+                        { title: '秋のM3 参加申し込み', date: '2026-07-25', daysLeft: 20 }
+                    ]
+                }
+            },
+            computed: {
+                summaryCounts() {
+                    return {
+                        processing: this.mockProjects.filter(p => p.status === '進行中').length,
+                        retake: this.mockProjects.filter(p => p.status === '要リテイク').length,
+                        urgent: this.mockProjects.filter(p => p.remainingDays <= 7 && p.status !== '完了').length,
+                        completed: this.mockProjects.filter(p => p.status === '完了').length
+                    }
+                }
+            },
+            methods: {
+                setGlobalView(view) {
+                    this.currentView = view;
+                    this.activeProject = null;
+                    this.isMobileMenuOpen = false;
+                },
+                enterProject(proj) {
+                    this.currentView = 'project';
+                    this.projectMenu = 'summary'; 
+                    this.activeProject = proj;
+                    this.isMobileMenuOpen = false;
+                },
+                openModal(cat) {
+                    this.selectedCategory = cat;
+                    this.isModalOpen = true;
+                },
+                closeModal() {
+                    this.isModalOpen = false;
+                    this.selectedCategory = null;
+                },
+                getStatusClass(status) {
+                    switch (status) {
+                        case '完了': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+                        case '進行中': return 'bg-blue-50 text-blue-700 border-blue-100';
+                        case '要リテイク': return 'bg-amber-50 text-amber-700 border-amber-100';
+                        default: return 'bg-slate-50 text-slate-500 border-slate-100';
+                    }
+                },
+                logout() { alert('ログアウトします'); }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - Professional Refined Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    borderRadius: { 'xl': '12px', 'lg': '8px' },
+                    colors: { primary: '#4f46e5', 'primary-dark': '#4338ca' }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Outfit', 'Noto Sans JP', sans-serif; }
+        [v-cloak] { display: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        /* 通知ドロップダウンが切れないための重要な設定 */
+        .notification-dropdown {
+            z-index: 100;
+            filter: drop-shadow(0 20px 25px rgb(0 0 0 / 0.15));
+        }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-900 min-h-screen antialiased flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <div id="app" class="flex flex-col md:flex-row w-full h-full overflow-hidden" v-cloak>
+        
+        <header class="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 z-50">
+            <div class="flex items-center space-x-2">
+                <div class="bg-slate-900 text-white p-1.5 rounded-lg"><i class="bi bi-soundwave"></i></div>
+                <span class="font-bold text-sm">SoundProgress</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <button @click.stop="isNotificationOpen = !isNotificationOpen" class="relative p-1 text-slate-600">
+                        <i class="bi bi-bell text-xl"></i>
+                        <span v-if="unreadCount > 0" class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                    </button>
+                    <div v-if="isNotificationOpen" class="fixed right-4 left-4 top-14 md:absolute md:left-auto md:right-0 md:top-full md:w-80 bg-white border border-slate-200 rounded-xl shadow-2xl z-[100] overflow-hidden notification-dropdown">
+                        <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-500 uppercase">通知</span>
+                            <button @click="markAllAsRead" class="text-[10px] font-bold text-primary">すべて既読</button>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto custom-scrollbar">
+                            <div v-for="n in announcements.slice(0, 5)" :key="n.id" class="p-3 border-b border-slate-50 hover:bg-slate-50 flex gap-3">
+                                <div :class="n.isRead ? 'bg-slate-200' : 'bg-primary'" class="mt-1.5 w-1.5 h-1.5 shrink-0 rounded-full"></div>
+                                <p class="text-xs text-slate-700 leading-snug">{{ n.title }}</p>
+                            </div>
+                        </div>
+                        <button @click="setGlobalView('announcements'); isNotificationOpen = false;" class="w-full py-2.5 text-[10px] font-bold text-slate-400 bg-slate-50 border-t border-slate-100 uppercase">すべてのお知らせを見る</button>
+                    </div>
+                </div>
+                <button @click="isMobileMenuOpen = !isMobileMenuOpen" class="text-slate-600"><i :class="isMobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'" class="text-2xl"></i></button>
+            </div>
+        </header>
+
+        <aside :class="isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'" 
+               class="fixed md:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 z-40 transition-transform duration-200 h-full">
+            
+            <div class="p-5 pb-4 flex items-center justify-between shrink-0 overflow-visible">
+                <div class="flex items-center space-x-2 cursor-pointer" @click="setGlobalView('home')">
+                    <div class="bg-slate-900 text-white p-1.5 rounded-lg"><i class="bi bi-soundwave text-xl"></i></div>
+                    <span class="text-lg font-black tracking-tight">SoundProgress</span>
+                </div>
+                <div class="hidden md:block relative">
+                    <button @click.stop="isNotificationOpen = !isNotificationOpen" class="p-2 text-slate-400 hover:text-slate-900 transition-colors relative">
+                        <i class="bi bi-bell-fill text-lg"></i>
+                        <span v-if="unreadCount > 0" class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                    </button>
+                    <div v-if="isNotificationOpen" class="absolute left-0 mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-2xl z-[100] overflow-hidden notification-dropdown">
+                        <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-500 uppercase">通知</span>
+                            <button @click="markAllAsRead" class="text-[10px] font-bold text-primary">すべて既読</button>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto custom-scrollbar">
+                            <div v-for="n in announcements.slice(0, 5)" :key="n.id" class="p-3 border-b border-slate-50 hover:bg-slate-50 flex gap-3">
+                                <div :class="n.isRead ? 'bg-slate-200' : 'bg-primary'" class="mt-1.5 w-1.5 h-1.5 shrink-0 rounded-full"></div>
+                                <p class="text-xs text-slate-700 leading-snug">{{ n.title }}</p>
+                            </div>
+                        </div>
+                        <button @click="setGlobalView('announcements'); isNotificationOpen = false;" class="w-full py-2.5 text-[10px] font-bold text-slate-400 bg-slate-50 border-t border-slate-100 uppercase">すべて見る</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-5 flex-grow overflow-y-auto custom-scrollbar space-y-6 pt-2">
+                <div class="space-y-1">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">Community</p>
+                    <button @click="setGlobalView('home')" :class="currentView === 'home' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'" class="w-full text-left px-3 py-2 text-sm rounded-lg transition-all flex items-center gap-2 font-bold">
+                        <i class="bi bi-house-door-fill"></i> ホーム
+                    </button>
+                    <button @click="setGlobalView('announcements')" :class="currentView === 'announcements' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'" class="w-full text-left px-3 py-2 text-sm rounded-lg transition-all flex items-center gap-2 font-bold">
+                        <i class="bi bi-megaphone-fill"></i> お知らせ
+                        <span v-if="unreadCount > 0" class="ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full">{{ unreadCount }}</span>
+                    </button>
+                    <button @click="setGlobalView('members')" :class="currentView === 'members' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'" class="w-full text-left px-3 py-2 text-sm rounded-lg transition-all flex items-center gap-2 font-bold">
+                        <i class="bi bi-people-fill"></i> 全体メンバー
+                    </button>
+                </div>
+
+                <div class="space-y-1 pt-4">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">Projects</p>
+                    <button v-for="proj in mockProjects" :key="proj.id" @click="enterProject(proj)" :class="currentView === 'project' && activeProject?.id === proj.id ? 'bg-indigo-50 border-indigo-100 text-indigo-700 font-bold' : 'text-slate-600 hover:bg-slate-50'" class="w-full text-left px-3 py-2 text-sm rounded-lg transition-all flex items-center gap-2">
+                        <span :class="proj.status === '要リテイク' ? 'bg-amber-500' : proj.status === '完了' ? 'bg-emerald-500' : 'bg-primary'" class="w-2 h-2 rounded-full"></span>
+                        <span class="truncate">{{ proj.title }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-2 truncate">
+                    <img class="w-8 h-8 rounded-full border border-white" :src="mockUser.avatar">
+                    <span class="text-xs font-bold text-slate-700 truncate">{{ mockUser.name }}</span>
+                </div>
+                <button @click="logout" class="p-2 text-slate-400 hover:text-red-500"><i class="bi bi-box-arrow-right"></i></button>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden w-full" @click="isNotificationOpen = false">
+            
+            <nav v-if="currentView === 'project'" class="bg-white border-b border-slate-200 px-4 md:px-8 flex items-center justify-between gap-2 shrink-0 shadow-sm z-30">
+                <div class="flex space-x-1 overflow-x-auto custom-scrollbar">
+                    <button @click="projectMenu = 'summary'" :class="projectMenu === 'summary' ? 'text-slate-900 border-slate-900 font-bold' : 'text-slate-400 border-transparent hover:text-slate-600'" class="px-4 py-3 border-b-2 text-sm font-medium transition-all whitespace-nowrap">概要</button>
+                    <button @click="projectMenu = 'tasks'" :class="projectMenu === 'tasks' ? 'text-slate-900 border-slate-900 font-bold' : 'text-slate-400 border-transparent hover:text-slate-600'" class="px-4 py-3 border-b-2 text-sm font-medium transition-all whitespace-nowrap">進捗タスク</button>
+                    <button @click="projectMenu = 'assets'" :class="projectMenu === 'assets' ? 'text-slate-900 border-slate-900 font-bold' : 'text-slate-400 border-transparent hover:text-slate-600'" class="px-4 py-3 border-b-2 text-sm font-medium transition-all whitespace-nowrap">提出素材</button>
+                    <button @click="projectMenu = 'survey'" :class="projectMenu === 'survey' ? 'text-slate-900 border-slate-900 font-bold' : 'text-slate-400 border-transparent hover:text-slate-600'" class="px-4 py-3 border-b-2 text-sm font-medium transition-all whitespace-nowrap">アンケート</button>
+                    <button @click="projectMenu = 'members'" :class="projectMenu === 'members' ? 'text-slate-900 border-slate-900 font-bold' : 'text-slate-400 border-transparent hover:text-slate-600'" class="px-4 py-3 border-b-2 text-sm font-medium transition-all whitespace-nowrap">メンバー</button>
+                </div>
+            </nav>
+
+            <main class="flex-grow overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                
+                <div v-if="currentView === 'home'" class="max-w-6xl mx-auto space-y-6">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-2xl font-black text-slate-900 tracking-tight">ダッシュボード</h2>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div v-for="(count, key) in summaryCounts" :key="key" class="p-5 bg-white border border-slate-200 rounded-xl shadow-sm">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ key }}</p>
+                            <p class="text-3xl font-black text-slate-900 mt-2 font-mono">{{ count }}<span class="text-xs font-medium ml-1 text-slate-300">件</span></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                <i class="bi bi-megaphone-fill text-red-500"></i> 全体へのお知らせ
+                            </h3>
+                            <button @click="setGlobalView('announcements')" class="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">一覧を見る</button>
+                        </div>
+                        <div class="divide-y divide-slate-100">
+                            <div v-for="a in announcements.filter(x => x.type === 'COMMUNITY').slice(0, 2)" :key="a.id" class="px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50 transition-colors cursor-pointer" @click="setGlobalView('announcements')">
+                                <div class="flex gap-4 items-start">
+                                    <span class="bg-red-50 text-red-600 text-[10px] font-black px-2 py-0.5 rounded mt-0.5 uppercase">Important</span>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-800 leading-tight">{{ a.title }}</h4>
+                                        <p class="text-xs text-slate-500 mt-1 line-clamp-1">{{ a.content }}</p>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] text-slate-400 font-mono shrink-0">{{ a.date }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div v-for="proj in mockProjects" :key="proj.id" @click="enterProject(proj)" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden hover:border-primary transition-all group cursor-pointer">
+                            <div class="h-32 bg-slate-100 relative">
+                                <img v-if="proj.thumbnail" :src="proj.thumbnail" class="w-full h-full object-cover">
+                                <span :class="getStatusClass(proj.status)" class="absolute top-3 right-3 text-[10px] font-black px-2 py-1 rounded shadow-sm border uppercase">
+                                    {{ proj.status }}
+                                </span>
+                            </div>
+                            <div class="p-5">
+                                <h4 class="font-bold text-slate-900 truncate">{{ proj.title }}</h4>
+                                <div class="mt-4 w-full bg-slate-50 h-1 rounded-full overflow-hidden">
+                                    <div class="bg-primary h-full transition-all duration-1000" :style="{ width: '65%' }"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'announcements'" class="max-w-4xl mx-auto space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+                        <div>
+                            <h2 class="text-2xl font-black text-slate-900 tracking-tight leading-none">お知らせセンター</h2>
+                            <p class="text-[10px] text-slate-400 mt-2 font-black uppercase tracking-widest">Announcements & Logs</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button @click="markAllAsRead" class="bg-white border border-slate-200 text-slate-600 font-bold text-xs px-4 py-2 rounded-lg hover:bg-slate-50 transition-all">すべて既読にする</button>
+                            <button v-if="mockUser.role === 'ADMIN'" @click="alert('お知らせ作成')" class="bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-lg">お知らせを作成</button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mb-6">
+                        <button v-for="t in ['ALL', 'COMMUNITY', 'PERSONAL']" @click="activeTab = t"
+                                :class="activeTab === t ? 'bg-primary text-white font-bold shadow-md shadow-indigo-100' : 'bg-white border border-slate-200 text-slate-500'"
+                                class="px-5 py-2 text-xs rounded-full transition-all">
+                            {{ t === 'ALL' ? 'すべて' : t === 'COMMUNITY' ? 'コミュニティ告知' : '自分宛の更新' }}
+                        </button>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div v-for="a in filteredAnnouncements" :key="a.id" 
+                             class="bg-white border rounded-xl p-5 shadow-sm transition-all flex items-start gap-4 relative group"
+                             :class="a.isRead ? 'border-slate-100 opacity-60' : 'border-indigo-100 ring-1 ring-indigo-50'">
+                            
+                            <div class="shrink-0 mt-1">
+                                <div v-if="a.type === 'COMMUNITY'" class="w-10 h-10 bg-red-50 text-red-500 rounded-lg flex items-center justify-center text-lg"><i class="bi bi-megaphone"></i></div>
+                                <div v-else class="w-10 h-10 bg-indigo-50 text-indigo-500 rounded-lg flex items-center justify-center text-lg"><i class="bi bi-person-check"></i></div>
+                            </div>
+
+                            <div class="flex-grow min-w-0">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="text-base font-bold text-slate-900 flex items-center gap-2 leading-tight">
+                                            {{ a.title }} <span v-if="!a.isRead" class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                        </h4>
+                                        <p class="text-[10px] font-mono text-slate-400 mt-1 uppercase tracking-widest">{{ a.date }} • {{ a.author }}</p>
+                                    </div>
+                                    <button @click="a.isRead = !a.isRead" class="text-[9px] font-black text-slate-400 hover:text-primary uppercase tracking-widest bg-slate-50 px-2 py-1 rounded">
+                                        {{ a.isRead ? '未読にする' : '既読にする' }}
+                                    </button>
+                                </div>
+                                <p class="text-sm text-slate-600 leading-relaxed mt-3 bg-slate-50/50 p-4 rounded-lg border border-slate-50 whitespace-pre-wrap">{{ a.content }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'project'" class="max-w-6xl mx-auto space-y-6">
+                    <div v-if="projectMenu === 'summary'" class="space-y-6">
+                        <div class="bg-white border border-slate-200 rounded-xl p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-3">
+                                    <span :class="getStatusClass(activeProject.status)" class="text-[10px] font-black px-2 py-0.5 rounded border uppercase tracking-widest shadow-sm">{{ activeProject.status }}</span>
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Project</span>
+                                </div>
+                                <h2 class="text-3xl font-black text-slate-900 tracking-tight">{{ activeProject.title }}</h2>
+                                <div class="flex items-center gap-3 pt-1 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                                    <span class="bg-slate-50 px-2 py-1 rounded border border-slate-100">締切: {{ activeProject.dueDate }}</span>
+                                    <span>•</span>
+                                    <span>残り: {{ activeProject.remainingDays }}日</span>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0 border-l border-slate-100 pl-8">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">全体進捗</span>
+                                <p class="text-5xl font-black text-slate-900 font-mono tracking-tighter">65<span class="text-xl font-normal text-slate-300 ml-1">%</span></p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between min-h-[320px]">
+                                <div>
+                                    <div class="flex justify-between items-center mb-4">
+                                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">最新イラスト</p>
+                                        <span class="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded uppercase border border-emerald-100">確認中</span>
+                                    </div>
+                                    <h3 class="text-sm font-bold text-slate-900 truncate leading-tight">第一弾メインビジュアル</h3>
+                                </div>
+                                <div class="my-4 h-44 bg-slate-50 rounded-lg overflow-hidden flex items-center justify-center border border-slate-100 shadow-inner">
+                                    <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover opacity-90">
+                                </div>
+                                <p class="text-[10px] font-mono text-slate-400 truncate">FILE: haru_visual_v2.png</p>
+                            </div>
+
+                            <div class="lg:col-span-2 bg-slate-900 text-white border border-slate-800 rounded-xl p-6 shadow-xl flex flex-col justify-between min-h-[320px] relative overflow-hidden">
+                                <div class="absolute -right-12 -top-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl"></div>
+                                <div class="relative">
+                                    <div class="flex justify-between items-start mb-6">
+                                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2"><i class="bi bi-music-note-beamed"></i>最新確定音源</p>
+                                        <div class="flex gap-2">
+                                            <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-black px-2 py-0.5 rounded uppercase">要リテイク</span>
+                                            <button class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded transition-colors font-black border border-slate-700 uppercase tracking-widest">ZIP DL</button>
+                                        </div>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-slate-100 truncate mb-1">サビ調整ボーカルMIX</h3>
+                                    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">File: haru_mix_v3_master.wav</p>
+                                </div>
+
+                                <div class="relative my-6 flex items-center space-x-5">
+                                    <button class="w-14 h-14 bg-primary hover:bg-primary-dark text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 transition-all font-bold text-2xl active:scale-95">
+                                        <i class="bi bi-play-fill ml-1"></i>
+                                    </button>
+                                    <div class="flex-grow space-y-2">
+                                        <div class="h-10 bg-slate-800/60 rounded-lg flex items-end justify-between px-3 pb-1.5 gap-[2px] border border-slate-700 shadow-inner overflow-hidden">
+                                            <div v-for="h in [40,60,30,80,90,70,50,80,60,40,70,90,100,60,40,80,50,30,60,80,40,70,50,30,60,40]" :style="{ height: h + '%' }" class="w-full bg-primary/40 rounded-full"></div>
+                                        </div>
+                                        <div class="flex justify-between text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">
+                                            <span>Playback Preview</span>
+                                            <span class="text-primary">03:45</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="projectMenu === 'tasks'" class="space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 pb-4 mb-2">
+                            <h3 class="font-black text-lg text-slate-900">工程マイルストーン</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <div v-for="cat in activeProject.categories" :key="cat.id" 
+                                 class="bg-white border rounded-xl p-5 flex items-center gap-6 shadow-sm hover:border-primary transition-all cursor-pointer group"
+                                 :class="cat.status === '完了' ? 'border-emerald-100 bg-emerald-50/5' : (cat.status === '要リテイク' ? 'border-amber-200' : 'border-slate-200')">
+                                <div class="shrink-0">
+                                    <div :class="cat.status === '完了' ? 'bg-emerald-500 text-white' : cat.status === '要リテイク' ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-300'" class="w-12 h-12 rounded-lg flex items-center justify-center text-xl shadow-sm">
+                                        <i :class="cat.status === '完了' ? 'bi bi-check-lg' : cat.status === '要リテイク' ? 'bi bi-exclamation-triangle' : 'bi bi-dash-lg'"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                        <div>
+                                            <h4 class="font-bold text-slate-900 group-hover:text-primary transition-colors leading-none" :class="cat.status === '完了' ? 'text-slate-400 line-through' : ''">{{ cat.title }}</h4>
+                                            <div class="flex items-center gap-3 mt-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                                                <span class="flex items-center gap-1"><i class="bi bi-person-fill"></i> {{ cat.assignees[0] }}</span>
+                                                <span class="flex items-center gap-1"><i class="bi bi-clock-fill"></i> {{ activeProject.dueDate }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span :class="getStatusClass(cat.status)" class="text-[10px] font-black px-3 py-1.5 rounded-lg border uppercase tracking-widest min-w-[85px] text-center shadow-sm">
+                                                {{ cat.status }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="projectMenu === 'survey'" class="space-y-6">
+                        <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+                            <h3 class="font-black text-lg text-slate-900">多数決・意思決定</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="bg-indigo-50 text-indigo-700 text-[10px] font-black px-2 py-0.5 rounded tracking-widest uppercase border border-indigo-100">回答受付中</span>
+                                        <span class="text-[10px] font-bold text-slate-400">4 VOTES</span>
+                                    </div>
+                                    <h4 class="font-black text-slate-900 text-xl leading-tight">イラスト背景の方向性について</h4>
+                                </div>
+                                <div class="space-y-4">
+                                    <div v-for="opt in [{l:'A: サイバーパンク・夜の街', p:75, w:true}, {l:'B: ノスタルジック・放課後', p:25, w:false}]" :key="opt.l" class="space-y-1.5">
+                                        <div class="flex justify-between items-center text-[11px] font-bold uppercase tracking-widest">
+                                            <span class="text-slate-700">{{ opt.l }}</span>
+                                            <span class="text-slate-900 font-mono">{{ opt.p }}%</span>
+                                        </div>
+                                        <div class="relative w-full h-3 bg-slate-50 rounded-full overflow-hidden border border-slate-100 shadow-inner">
+                                            <div class="vote-bar absolute left-0 top-0 h-full rounded-full" 
+                                                 :class="opt.w ? 'bg-primary' : 'bg-slate-200'"
+                                                 :style="{ width: opt.p + '%' }"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pt-2">
+                                    <button class="w-full py-3 bg-slate-900 text-white rounded-lg font-black text-xs shadow-xl hover:translate-y-[-1px] transition-all uppercase tracking-[0.2em]">Submit Vote</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'members'" class="max-w-4xl mx-auto space-y-6">
+                    <h2 class="text-2xl font-black text-slate-900 border-b border-slate-200 pb-5">コミュニティメンバー</h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div v-for="m in communityMembers" :key="m.name" class="p-5 bg-white border border-slate-200 rounded-xl flex items-center gap-4 shadow-sm hover:shadow-md transition-all">
+                            <div class="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center font-bold text-slate-400">{{ m.name.substring(0,1) }}</div>
+                            <div class="truncate">
+                                <p class="font-bold text-gray-900 text-sm truncate">{{ m.name }}</p>
+                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ m.role }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                return {
+                    currentView: 'home',
+                    projectMenu: 'summary',
+                    activeProject: null,
+                    isMobileMenuOpen: false,
+                    isNotificationOpen: false,
+                    activeTab: 'ALL',
+                    mockUser: { name: 'タロウ_ボカロP', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80', role: 'ADMIN' },
+                    summaryCounts: { '進行中': 12, 'リテイク': 2, '完了済み': 45, '期限近': 1 },
+                    announcements: [
+                        { id: 1, type: 'COMMUNITY', title: '夏コミ(C108) カタログ用ロゴ配布', content: 'サークルカット等に使用する公式ロゴの最新版を配布しました。ファイル共有からDLしてください。', author: '事務局', date: '2026/07/07', isRead: false },
+                        { id: 2, type: 'PERSONAL', title: '「ハルノウタ」にコメントがあります', content: 'Suzuki_Engさんがあなたをタグ付けしました：「Bメロのピッチはこの方向で大丈夫でしょうか？」', author: 'Suzuki_Eng', date: '2026/07/06', isRead: false },
+                        { id: 3, type: 'COMMUNITY', title: '運営規約改定のお知らせ', content: '提出期限が前日23:59に統一されました。', author: 'ADMIN', date: '2026/07/01', isRead: true },
+                        { id: 4, type: 'PERSONAL', title: 'イラスト成果物投稿通知', content: '田中（絵師）さんが新アセットを投稿しました。', author: 'System', date: '2026/06/28', isRead: true }
+                    ],
+                    communityMembers: [
+                        { name: 'タロウ_ボカロP', role: '管理者' },
+                        { name: 'サトウ（作曲）', role: 'クリエイター' },
+                        { name: 'スズキ（Eng）', role: 'エンジニア' },
+                        { name: 'タナカ（絵師）', role: '絵師' }
+                    ],
+                    mockProjects: [
+                        { id: 1, title: '新曲「ハルノウタ」リード曲', status: '進行中', completedTasks: 2, totalTasks: 5, dueDate: '2026/08/15', remainingDays: 41,
+                          categories: [
+                              { id: 1, title: 'インスト・パラ構成', assignees: ['サトウ'], status: '完了' },
+                              { id: 2, title: 'ボーカルMIX・マスタリング', assignees: ['Suzuki'], status: '要リテイク' },
+                              { id: 3, title: 'メインイラスト・背景', assignees: ['田中'], status: '進行中' }
+                          ],
+                          members: [{ name: 'タロウ', role: 'ADMIN' }, { name: 'スズキ', role: 'MIX' }]
+                        }
+                    ]
+                }
+            },
+            computed: {
+                unreadCount() { return this.announcements.filter(a => !a.isRead).length; },
+                filteredAnnouncements() {
+                    let list = this.announcements;
+                    if (this.activeTab !== 'ALL') list = list.filter(a => a.type === this.activeTab);
+                    return list.sort((a,b) => b.id - a.id);
+                }
+            },
+            methods: {
+                setGlobalView(view) {
+                    this.currentView = view;
+                    this.activeProject = null;
+                    this.isMobileMenuOpen = false;
+                    this.isNotificationOpen = false;
+                },
+                enterProject(proj) {
+                    this.currentView = 'project';
+                    this.projectMenu = 'summary';
+                    this.activeProject = proj;
+                    this.isMobileMenuOpen = false;
+                },
+                markAllAsRead() { this.announcements.forEach(a => a.isRead = true); },
+                getStatusClass(status) {
+                    switch (status) {
+                        case '完了': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+                        case '要リテイク': return 'bg-amber-50 text-amber-700 border-amber-100';
+                        default: return 'bg-blue-50 text-blue-700 border-blue-100';
+                    }
+                },
+                logout() { alert('ログアウト'); }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
