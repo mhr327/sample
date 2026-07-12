@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundProgress - Pure Flowbite Edition</title>
+    
+    <!-- Tailwind CSS & Flowbite CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        /* Flowbite標準のフォントスタック (Inter優先) */
+        body { 
+            font-family: 'Inter', 'Noto Sans JP', sans-serif; 
+        }
+        [v-cloak] { display: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased min-h-screen flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <div id="app" class="flex flex-col md:flex-row w-full h-full overflow-hidden" v-cloak>
+        
+        <!-- Navbar (Mobile Only) - Flowbite Standard -->
+        <header class="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shrink-0 z-50">
+            <div class="flex items-center space-x-2">
+                <div class="bg-blue-600 text-white p-2 rounded-lg">
+                    <i class="bi bi-music-note-beamed"></i>
+                </div>
+                <span class="text-xl font-semibold tracking-tight text-gray-900">SoundProgress</span>
+            </div>
+            <button @click="isMobileMenuOpen = !isMobileMenuOpen" class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                <i :class="isMobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'" class="text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Sidebar - Flowbite Drawer / Sidebar Standard -->
+        <aside :class="[
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+        isSidebarOpen ? 'md:w-64' : 'md:w-0 md:border-r-0']" 
+            class="fixed md:static inset-y-0 left-0 bg-white border-r border-gray-200 flex flex-col justify-between shrink-0 z-40 transition-all duration-200 ease-in-out h-full pt-16 md:pt-0 overflow-hidden w-64">
+            
+            <div class="py-5 px-3 flex-grow overflow-y-auto custom-scrollbar flex flex-col justify-between">
+                <div class="space-y-5">
+                    <div class="hidden md:flex items-center space-x-2.5 mb-5 px-2">
+                        <div class="bg-blue-600 text-white p-2 rounded-lg">
+                            <i class="bi bi-music-note-beamed text-sm flex items-center justify-center w-4 h-4"></i>
+                        </div>
+                        <span class="text-base font-semibold tracking-tight text-gray-900">SoundProgress</span>
+                    </div>
+
+                    <ul class="space-y-1">
+                        <li>
+                            <button @click="setGlobalView('home')" :class="currentView === 'home' ? 'bg-gray-100 text-blue-600 font-medium' : 'text-gray-900 hover:bg-gray-50'" class="flex items-center w-full p-2 text-sm rounded-lg transition-colors duration-75 text-left group">
+                                <i class="bi bi-house-door text-lg text-gray-500 transition-colors duration-75 group-hover:text-gray-900 mr-3 flex items-center justify-center w-5 h-5"></i>
+                                <span>ホーム</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button @click="setGlobalView('schedule')" :class="currentView === 'schedule' ? 'bg-gray-100 text-blue-600 font-medium' : 'text-gray-900 hover:bg-gray-50'" class="flex items-center w-full p-2 text-sm rounded-lg transition-colors duration-75 text-left group">
+                                <i class="bi bi-calendar3 text-lg text-gray-500 transition-colors duration-75 group-hover:text-gray-900 mr-3 flex items-center justify-center w-5 h-5"></i>
+                                <span>スケジュール</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button @click="setGlobalView('wiki')" :class="currentView === 'wiki' ? 'bg-gray-100 text-blue-600 font-medium' : 'text-gray-900 hover:bg-gray-50'" class="flex items-center w-full p-2 text-sm rounded-lg transition-colors duration-75 text-left group">
+                                <i class="bi bi-book text-lg text-gray-500 transition-colors duration-75 group-hover:text-gray-900 mr-3 flex items-center justify-center w-5 h-5"></i>
+                                <span>運営Wiki</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button @click="setGlobalView('members')" :class="currentView === 'members' ? 'bg-gray-100 text-blue-600 font-medium' : 'text-gray-900 hover:bg-gray-50'" class="flex items-center w-full p-2 text-sm rounded-lg transition-colors duration-75 text-left group">
+                                <i class="bi bi-people text-lg text-gray-500 transition-colors duration-75 group-hover:text-gray-900 mr-3 flex items-center justify-center w-5 h-5"></i>
+                                <span>メンバー</span>
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="pt-4 border-t border-gray-200">
+                        <div class="flex items-center justify-between px-2 mb-2">
+                            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Active Projects</span>
+                            <span class="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full font-mono">{{ mockProjects.length }}</span>
+                        </div>
+                        <ul class="space-y-1">
+                            <li v-for="proj in mockProjects" :key="proj.id">
+                                <button @click="enterProject(proj)" :class="currentView === 'project' && activeProject?.id === proj.id ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-50'" class="flex items-center w-full p-2 text-sm rounded-lg transition-colors text-left group">
+                                    <span :class="proj.status === '要リテイク' ? 'bg-orange-500' : proj.status === '完了' ? 'bg-green-500' : 'bg-blue-500'" class="w-2 h-2 rounded-full shrink-0 mr-3 ml-1.5"></span>
+                                    <span class="truncate">{{ proj.title }}</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="p-2 border-t border-gray-200 bg-white flex items-center justify-between gap-2 shrink-0 pt-4 mt-4">
+                    <div class="flex items-center space-x-3 truncate">
+                        <img class="w-8 h-8 rounded-full shrink-0" :src="mockUser.avatar" alt="user photo">
+                        <div class="flex flex-col truncate">
+                            <span class="text-sm font-semibold text-gray-900 truncate">{{ mockUser.name }}</span>
+                            <span class="bg-blue-100 text-blue-800 text-[11px] font-medium px-1.5 py-0.5 rounded border border-blue-200 w-max mt-0.5">{{ mockUser.role }}</span>
+                        </div>
+                    </div>
+                    <button @click="logout" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <i class="bi bi-box-arrow-right text-base flex items-center justify-center w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden w-full bg-gray-50">
+            
+            <!-- Project Inside Navbar - Flowbite Tabs Style -->
+            <nav v-if="currentView === 'project'" class="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between gap-4 shrink-0 z-30 shadow-sm">
+                <div class="flex items-center space-x-2 overflow-x-auto custom-scrollbar">
+                    <button @click="isSidebarOpen = !isSidebarOpen" class="hidden md:inline-flex p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:ring-2 focus:ring-gray-200 mr-2">
+                        <i :class="isSidebarOpen ? 'bi bi-arrow-bar-left' : 'bi bi-arrow-bar-right'" class="text-lg"></i>
+                    </button>
+                    
+                    <!-- Flowbite Underline Tabs -->
+                    <div class="flex border-b border-gray-200">
+                        <button @click="projectMenu = 'tasks'" :class="projectMenu === 'tasks' ? 'border-blue-600 text-blue-600 font-medium' : 'border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300'" class="inline-block p-4 border-b-2 text-sm whitespace-nowrap">
+                            <i class="bi bi-kanban mr-2"></i>進捗タスク
+                        </button>
+                        <button @click="projectMenu = 'assets'" :class="projectMenu === 'assets' ? 'border-blue-600 text-blue-600 font-medium' : 'border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300'" class="inline-block p-4 border-b-2 text-sm whitespace-nowrap">
+                            <i class="bi bi-folder2-open mr-2"></i>アセット提出
+                        </button>
+                        <button @click="projectMenu = 'survey'" :class="projectMenu === 'survey' ? 'border-blue-600 text-blue-600 font-medium' : 'border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300'" class="inline-block p-4 border-b-2 text-sm whitespace-nowrap">
+                            <i class="bi bi-question-circle mr-2"></i>アンケート
+                        </button>
+                        <button @click="projectMenu = 'members'" :class="projectMenu === 'members' ? 'border-blue-600 text-blue-600 font-medium' : 'border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300'" class="inline-block p-4 border-b-2 text-sm whitespace-nowrap">
+                            <i class="bi bi-people mr-2"></i>制作メンバー
+                        </button>
+                    </div>
+                </div>
+                <div class="shrink-0">
+                    <a :href="'https://discord.com/channels/mock/' + activeProject?.discordMainChannel" target="_blank" class="inline-flex items-center text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-100 px-3 py-2 rounded-lg transition-colors">
+                        <i class="bi bi-discord mr-1.5 text-sm"></i> <span>#{{ activeProject?.discordMainChannel }}</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Scrollable Viewport -->
+            <main class="flex-grow overflow-y-auto p-4 md:p-6 custom-scrollbar">
+                
+                <!-- HOME VIEW -->
+                <div v-if="currentView === 'home'" class="max-w-7xl mx-auto space-y-6">
+                    
+                    <!-- View Header -->
+                    <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+                        <div class="flex items-center space-x-3">
+                            <button @click="isSidebarOpen = !isSidebarOpen" class="hidden md:inline-flex p-2 text-gray-500 rounded-lg hover:bg-gray-100">
+                                <i :class="isSidebarOpen ? 'bi bi-arrow-bar-left' : 'bi bi-arrow-bar-right'" class="text-xl"></i>
+                            </button>
+                            <div>
+                                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ currentCommunityName }}</span>
+                                <h1 class="text-2xl font-bold tracking-tight text-gray-900 mt-0.5">ダッシュボード</h1>
+                            </div>
+                        </div>
+                        <div v-if="mockUser.role === 'ADMIN'">
+                            <!-- Flowbite Button Standard -->
+                            <button @click="isModalOpen = true" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center">
+                                <i class="bi bi-plus-lg mr-2"></i> 新規プロジェクト
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Layout Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                        
+                        <div class="lg:col-span-2 space-y-6">
+                            
+                            <!-- KPI Indicator Cards - Flowbite Card base -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                    <h5 class="text-xs font-semibold text-gray-500 uppercase">進行中案件</h5>
+                                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ summaryCounts.processing }}<span class="text-sm font-normal text-gray-400 ml-1">件</span></p>
+                                </div>
+                                <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm border-l-4 border-l-orange-500">
+                                    <h5 class="text-xs font-semibold text-gray-500 uppercase">リテイク発生</h5>
+                                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ summaryCounts.retake }}<span class="text-sm font-normal text-gray-400 ml-1">件</span></p>
+                                </div>
+                                <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm border-l-4 border-l-red-600">
+                                    <h5 class="text-xs font-semibold text-gray-500 uppercase">一週間以内の締切</h5>
+                                    <p class="text-3xl font-bold text-red-600 mt-2">{{ summaryCounts.urgent }}<span class="text-sm font-normal text-gray-400 ml-1">件</span></p>
+                                </div>
+                                <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                    <h5 class="text-xs font-semibold text-gray-500 uppercase">今月の完了</h5>
+                                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ summaryCounts.completed }}<span class="text-sm font-normal text-gray-400 ml-1">件</span></p>
+                                </div>
+                            </div>
+
+                            <!-- Room Header & Project Cards Grid -->
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <h2 class="text-lg font-bold text-gray-900 inline-flex items-center">
+                                        <i class="bi bi-collection-play text-blue-600 mr-2"></i>プロジェクトルーム
+                                    </h2>
+                                    <!-- Flowbite Select Standard -->
+                                    <select v-model="selectedStatusFilter" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2">
+                                        <option v-for="status in statusTabs" :value="status.value">{{ status.label }}</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <!-- Flowbite Card with Image Component -->
+                                    <div v-for="proj in filteredProjects" :key="proj.id" @click="enterProject(proj)" class="max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 cursor-pointer transition flex flex-col justify-between overflow-hidden w-full mx-auto">
+                                        <div>
+                                            <div class="h-32 bg-gray-100 relative overflow-hidden flex items-center justify-center border-b border-gray-200">
+                                                <img v-if="proj.thumbnail" :src="proj.thumbnail" class="w-full h-full object-cover">
+                                                <i v-else class="bi bi-music-note text-3xl text-gray-300"></i>
+                                                <!-- Flowbite Badge Styles -->
+                                                <span :class="proj.status === '要リテイク' ? 'bg-orange-100 text-orange-800 border-orange-300' : proj.status === '完了' ? 'bg-green-100 text-green-800 border-green-300' : 'bg-blue-100 text-blue-800 border-blue-300'" class="absolute top-2 right-2 text-xs font-medium px-2.5 py-0.5 rounded border">
+                                                    {{ proj.status }}
+                                                </span>
+                                            </div>
+                                            <div class="p-4">
+                                                <h5 class="text-base font-bold tracking-tight text-gray-900 truncate mb-3">{{ proj.title }}</h5>
+                                                
+                                                <!-- Flowbite Progress Bar Style -->
+                                                <div class="flex justify-between mb-1">
+                                                    <span class="text-xs font-medium text-gray-700">Progress</span>
+                                                    <span class="text-xs font-medium text-gray-900">{{ Math.round(proj.completedTasks / proj.totalTasks * 100) }}%</span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-blue-600 h-2 rounded-full" :style="{ width: (proj.completedTasks / proj.totalTasks * 100) + '%' }"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="px-4 py-2 bg-gray-50 border-t border-gray-200 flex items-center justify-between text-xs text-gray-500 font-medium">
+                                            <span :class="proj.remainingDays <= 7 && proj.status !== '完了' ? 'text-red-600 font-bold' : ''">
+                                                {{ proj.status === '完了' ? 'MASTERED' : 'DUE: ' + proj.remainingDays + ' DAYS' }}
+                                            </span>
+                                            <span>#{{ proj.discordMainChannel }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Sidebar Widgets Stack -->
+                        <div class="space-y-4">
+                            
+                            <!-- Flowbite Basic Card for widget -->
+                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm space-y-3">
+                                <h3 class="text-sm font-bold text-gray-900 inline-flex items-center">
+                                    <i class="bi bi-clock-history text-blue-600 mr-2"></i>直近の全体目標
+                                </h3>
+                                <div class="space-y-2">
+                                    <div v-for="sch in communityData.schedules.slice(0, 2)" class="p-3 bg-gray-50 rounded-lg border border-gray-100 flex justify-between items-center text-xs">
+                                        <div class="truncate mr-2">
+                                            <p class="font-semibold text-gray-900 truncate">{{ sch.title }}</p>
+                                            <span class="text-gray-400 font-mono">{{ sch.date }}</span>
+                                        </div>
+                                        <span :class="sch.daysLeft <= 10 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'" class="font-medium px-2 py-0.5 rounded shrink-0">
+                                            T-{{ sch.daysLeft }}d
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-sm font-bold text-gray-900 inline-flex items-center">
+                                        <i class="bi bi-shield-check text-blue-600 mr-2"></i>クイック規約
+                                    </h3>
+                                    <button @click="setGlobalView('wiki')" class="text-xs font-medium text-blue-600 hover:underline">全て見る</button>
+                                </div>
+                                <div class="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg leading-relaxed border border-gray-100">
+                                    1. 締め切りは目標日「前日23:59」絶対厳守<br>
+                                    2. リテイク発生時は速やかにDiscord返信
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- PROJECT TASKS VIEW (Milestones) -->
+                <div v-if="currentView === 'project' && projectMenu === 'tasks'" class="max-w-4xl mx-auto space-y-4">
+                    <div class="flex items-center justify-between border-b border-gray-200 pb-3">
+                        <h2 class="text-lg font-bold text-gray-900">工程マイルストーン</h2>
+                        <div class="flex space-x-3 text-xs font-medium text-gray-500">
+                            <span><i class="bi bi-circle-fill text-green-500 mr-1"></i>完了</span>
+                            <span><i class="bi bi-circle-fill text-blue-500 mr-1"></i>進行中</span>
+                            <span><i class="bi bi-circle-fill text-orange-500 mr-1"></i>要修正</span>
+                        </div>
+                    </div>
+
+                    <!-- Flowbite List Group System -->
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200">
+                        <div v-for="(task, index) in (activeProject.tasks || defaultTasks)" :key="index" 
+                             class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors"
+                             :class="task.done ? 'bg-gray-50/50' : ''">
+                            
+                            <div class="flex items-start space-x-3">
+                                <!-- Status Icon Indicators -->
+                                <div class="mt-0.5 shrink-0">
+                                    <i v-if="task.done" class="bi bi-check-circle-fill text-green-500 text-xl"></i>
+                                    <i v-else-if="task.retake" class="bi bi-exclamation-triangle-fill text-orange-500 text-xl"></i>
+                                    <i v-else class="bi bi-circle text-gray-300 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-900" :class="task.done ? 'text-gray-400 line-through' : ''">{{ task.name }}</h4>
+                                    <div class="flex items-center space-x-3 text-xs text-gray-500 mt-1">
+                                        <span><i class="bi bi-person mr-1"></i>{{ task.assignee }}</span>
+                                        <span><i class="bi bi-clock mr-1"></i>{{ task.dueDate }} 締切</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center space-x-2 shrink-0 self-end sm:self-center">
+                                <span v-if="task.retake" class="bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded border border-orange-200">RETAKE</span>
+                                <span v-if="task.done" class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded border border-green-200">SUCCESS</span>
+                                <button v-if="!task.done" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-xs px-3 py-1.5">詳細</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PROJECT ASSETS VIEW -->
+                <div v-if="currentView === 'project' && projectMenu === 'assets'" class="max-w-4xl mx-auto space-y-4">
+                    <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+                        <h2 class="text-lg font-bold text-gray-900">提出アセット一覧</h2>
+                        <button class="text-white bg-gray-900 hover:bg-gray-800 font-medium rounded-lg text-xs px-4 py-2">アセットを追加</button>
+                    </div>
+                    
+                    <!-- Table Style List Component -->
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                        <ul class="divide-y divide-gray-200">
+                            <li v-for="file in (activeProject.files || communityData.sharedFiles)" :key="file.name" class="p-4 flex items-center justify-between hover:bg-gray-50 transition">
+                                <div class="flex items-center space-x-3 truncate">
+                                    <div class="p-2 bg-gray-100 text-gray-500 rounded-lg text-lg shrink-0"><i class="bi bi-file-earmark-music"></i></div>
+                                    <div class="truncate">
+                                        <p class="text-sm font-semibold text-gray-900 truncate">{{ file.name }}</p>
+                                        <p class="text-xs text-gray-400 font-mono mt-0.5">{{ file.size }} • 2026-07-07</p>
+                                    </div>
+                                </div>
+                                <button class="text-gray-500 hover:text-gray-900 p-2"><i class="bi bi-download text-lg"></i></button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- PROJECT SURVEY VIEW -->
+                <div v-if="currentView === 'project' && projectMenu === 'survey'" class="max-w-4xl mx-auto space-y-4">
+                    <h2 class="text-lg font-bold text-gray-900 border-b border-gray-200 pb-3">意思決定アンケート</h2>
+                    <!-- Flowbite Card Box for Poll -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm max-w-xl space-y-4">
+                        <div>
+                            <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-blue-200 uppercase">Voting Open</span>
+                            <h3 class="text-base font-bold text-gray-900 mt-2">Bメロのシンセの音色、どちらが良いですか？</h3>
+                        </div>
+                        <div class="space-y-2">
+                            <button class="w-full text-left p-3.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg flex justify-between items-center text-sm font-medium transition text-gray-800">
+                                <span>A: 鋭いデジタルサウンド</span>
+                                <span class="bg-white border text-xs px-2 py-0.5 rounded text-gray-500 font-mono shadow-sm">4 票 (80%)</span>
+                            </button>
+                            <button class="w-full text-left p-3.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg flex justify-between items-center text-sm font-medium transition text-gray-800">
+                                <span>B: 柔らかいアナログ系</span>
+                                <span class="bg-white border text-xs px-2 py-0.5 rounded text-gray-500 font-mono shadow-sm">1 票 (20%)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MEMBERS VIEW -->
+                <div v-if="(currentView === 'project' && projectMenu === 'members') || currentView === 'members'" class="max-w-4xl mx-auto space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 pb-3">
+                        <h1 class="text-xl font-bold text-gray-900">クリエイター一覧</h1>
+                        <div v-if="mockUser.role === 'ADMIN'" class="flex space-x-2">
+                            <input type="text" placeholder="Discord ID..." class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 w-40">
+                            <button class="text-white bg-gray-900 hover:bg-gray-800 font-medium rounded-lg text-xs px-4 py-2">招待</button>
+                        </div>
+                    </div>
+                    <!-- Grid List with Flowbite Element Design -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        <div v-for="m in communityData.members" :key="m.name" class="p-3 bg-white border border-gray-200 rounded-lg flex items-center space-x-3 shadow-sm">
+                            <div class="w-9 h-9 rounded-lg bg-gray-100 border flex items-center justify-center font-bold text-gray-600 text-xs shrink-0">{{ m.name.substring(0,1) }}</div>
+                            <div class="truncate">
+                                <p class="text-xs font-bold text-gray-900 truncate">{{ m.name }}</p>
+                                <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">{{ m.role }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCHEDULE VIEW -->
+                <div v-if="currentView === 'schedule'" class="max-w-4xl mx-auto space-y-4">
+                    <h1 class="text-xl font-bold text-gray-900">全体マイルストーン</h1>
+                    <div class="space-y-2">
+                        <div v-for="sch in communityData.schedules" class="p-4 border border-gray-200 rounded-lg bg-white shadow-sm flex justify-between items-center text-sm transition hover:bg-gray-50">
+                            <div>
+                                <h4 class="font-semibold text-gray-900">{{ sch.title }}</h4>
+                                <span class="text-xs font-mono text-gray-400 block mt-0.5">{{ sch.date }}</span>
+                            </div>
+                            <span class="text-xs font-medium text-gray-500 bg-gray-100 border px-2 py-1 rounded-lg">T-{{ sch.daysLeft }}日</span>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- UI Logic Hooked to Vue.js Template -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp, ref, computed } = Vue;
+        createApp({
+            setup() {
+                // UI States
+                const isMobileMenuOpen = ref(false);
+                const isSidebarOpen = ref(true);
+                const isModalOpen = ref(false);
+                const currentView = ref('home');
+                const projectMenu = ref('tasks');
+                const selectedStatusFilter = ref('ALL');
+
+                // Constant Mock Environment Definitions
+                const currentCommunityName = "SoundProgress Organization";
+                const mockUser = { name: "Shogo Kato", role: "ADMIN", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" };
+                
+                const mockProjects = ref([
+                    { id: 1, title: "1st Single 'Dawn Reflection' Mixアレンジ", status: "進行中", totalTasks: 5, completedTasks: 3, remainingDays: 4, discordMainChannel: "dawn-mix", thumbnail: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&h=250&fit=crop" },
+                    { id: 2, title: "夏コンピアルバム楽曲選定・マスタリング", status: "要リテイク", totalTasks: 8, completedTasks: 6, remainingDays: 12, discordMainChannel: "summer-comp2026", thumbnail: "" },
+                    { id: 3, title: "ボカロック投稿祭提出作品『アルカディア』", status: "完了", totalTasks: 4, completedTasks: 4, remainingDays: 0, discordMainChannel: "vocalo-arcadia", thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=250&fit=crop" }
+                ]);
+
+                const communityData = {
+                    schedules: [
+                        { title: "夏コンピアルバム 全曲マスターアップ提出期限", date: "2026-07-20", daysLeft: 8 },
+                        { title: "秋M3サークル参加申し込み及びカット登録日", date: "2026-08-05", daysLeft: 24 }
+                    ],
+                    sharedFiles: [
+                        { name: "Dawn_Reflection_Vocals_Raw.zip", size: "142.5 MB" },
+                        { name: "Mastering_Template_v2.als", size: "4.1 MB" }
+                    ],
+                    members: [
+                        { name: "Shogo Kato", role: "ADMIN" },
+                        { name: "Takumi.S", role: "Composer" },
+                        { name: "Yuki_Vocal", role: "Singer" },
+                        { name: "Mizuki", role: "Illustrator" }
+                    ]
+                };
+
+                const defaultTasks = [
+                    { name: "メインボーカルピッチ・タイミング補正", assignee: "Shogo Kato", dueDate: "07-14", done: true, retake: false },
+                    { name: "Bメロ・サビのバッキングギター録り直し", assignee: "Takumi.S", dueDate: "07-16", done: false, retake: true },
+                    { name: "2ndデモ音源書き出し・Discord共有", assignee: "Shogo Kato", dueDate: "07-18", done: false, retake: false }
+                ];
+
+                const activeProject = ref(mockProjects.value[0]);
+
+                // Computed Values for Filter Blocks
+                const filteredProjects = computed(() => {
+                    if (selectedStatusFilter.value === 'ALL') return mockProjects.value;
+                    return mockProjects.value.filter(p => p.status === selectedStatusFilter.value);
+                });
+
+                const summaryCounts = computed(() => {
+                    return {
+                        processing: mockProjects.value.filter(p => p.status === '進行中').length,
+                        retake: mockProjects.value.filter(p => p.status === '要リテイク').length,
+                        completed: mockProjects.value.filter(p => p.status === '完了').length,
+                        urgent: mockProjects.value.filter(p => p.status !== '完了' && p.remainingDays <= 7).length
+                    };
+                });
+
+                const statusTabs = [
+                    { label: "すべてのステータス", value: "ALL" },
+                    { label: "進行中", value: "進行中" },
+                    { label: "要リテイク", value: "要リテイク" },
+                    { label: "完了", value: "完了" }
+                ];
+
+                // Screen State Set Methods
+                const setGlobalView = (viewName) => {
+                    currentView.value = viewName;
+                    isMobileMenuOpen.value = false;
+                };
+
+                const enterProject = (projectObj) => {
+                    activeProject.value = projectObj;
+                    currentView.value = 'project';
+                    projectMenu.value = 'tasks';
+                    isMobileMenuOpen.value = false;
+                };
+
+                const logout = () => { alert("Logout logic integration endpoint trigger."); };
+
+                return {
+                    isMobileMenuOpen, isSidebarOpen, isModalOpen, currentView, projectMenu, selectedStatusFilter,
+                    currentCommunityName, mockUser, mockProjects, communityData, defaultTasks, activeProject,
+                    filteredProjects, summaryCounts, statusTabs, setGlobalView, enterProject, logout
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
