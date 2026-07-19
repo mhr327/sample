@@ -49,16 +49,11 @@ Copilot
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.ja.min.js"></script>
+  <script src="./js/utils/datepicker-utils.js"></script>
   <script type="text/javascript">
     $(document).ready(function(){
       $('.date-input-group input').on('input', function() {
-        var value = $(this).val();
-        var validCharacters = '0123456789';
-        for (var i = 0; i < value.length; i++) {
-          if (validCharacters.indexOf(value.charAt(i)) === -1) {
-            $(this).val(value.slice(0, i) + value.slice(i + 1));
-          }
-        }
+        restrictInputToChars(this, '0123456789');
       });
     });
   </script>

@@ -35,33 +35,18 @@ Copilot
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.min.js"></script>
+  <script src="./js/utils/datepicker-utils.js"></script>
   <script type="text/javascript">
     $(document).ready(function(){
       $('#datetimepicker').datetimepicker({
         format: 'YYYY/MM/DD HH:mm:ss',
         locale: 'ja',
-        icons: {
-          time: 'fa fa-clock',
-          date: 'fa fa-calendar-alt',
-          up: 'fa fa-arrow-up',
-          down: 'fa fa-arrow-down',
-          previous: 'fa fa-chevron-left',
-          next: 'fa fa-chevron-right',
-          today: 'fa fa-calendar-check-o',
-          clear: 'fa fa-trash',
-          close: 'fa fa-times'
-        }
+        icons: DATETIMEPICKER_ICONS
       });
 
       // 文字入力を制限
       $('#datetimepicker input').on('input', function(e) {
-        var value = $(this).val();
-        var validCharacters = '0123456789/: ';
-        for (var i = 0; i < value.length; i++) {
-          if (validCharacters.indexOf(value.charAt(i)) === -1) {
-            $(this).val(value.slice(0, i) + value.slice(i + 1));
-          }
-        }
+        restrictInputToChars(this, '0123456789/: ');
       });
     });
   </script>
