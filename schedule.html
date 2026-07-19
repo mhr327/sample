@@ -95,7 +95,7 @@
                     return {html: html};
                 }
             };
-            $.get('https://holidays-jp.github.io/api/v1/2024/date.json', (holidaysData) => {
+            const initCalendar = (holidaysData) => {
                 // 初期処理
                 const calendarEl = document.getElementById('calendar');
                 const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -298,10 +298,20 @@
                 nextButton.addEventListener('click', () => calendar.next());
                 // キャンバスにレンダリング
                 calendar.render();
-            });
+            };
+            // 祝日データを取得してカレンダーを初期化する。
+            // 取得に失敗しても握りつぶさず、エラーを出力したうえで祝日なしでカレンダーを表示する。
+            $.get('https://holidays-jp.github.io/api/v1/2024/date.json')
+                .done((holidaysData) => {
+                    initCalendar(holidaysData);
+                })
+                .fail((jqXHR, textStatus, errorThrown) => {
+                    console.error('祝日データの取得に失敗しました:', textStatus, errorThrown);
+                    initCalendar({});
+                });
         });
 
-        const getEventDatas = (holidaysData) => {
+        const getEventDatas = (holidaysData = {}) => {
             let eventDatas = [
                 {
                     id: '1', // ユニークID
