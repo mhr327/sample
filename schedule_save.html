@@ -546,6 +546,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.ja.min.js"></script>
     <!-- Custom Base JS -->
     <script src="./js/custom_base.js"></script>
+    <script src="./js/utils/datepicker-utils.js"></script>
     <script type="text/javascript">
         $(document).ready(function(){
         $('#datetimepicker').datepicker({
@@ -555,17 +556,7 @@
             language: 'ja',
             todayBtn: true,
             orientation: "bottom auto", // デートピッカーが自動的に表示位置を調整します
-            icons: {
-                time: 'fa fa-clock',
-                date: 'fa fa-calendar-alt',
-                up: 'fa fa-arrow-up',
-                down: 'fa fa-arrow-down',
-                previous: 'fa fa-chevron-left',
-                next: 'fa fa-chevron-right',
-                today: 'fa fa-calendar-check-o',
-                clear: 'fa fa-trash',
-                close: 'fa fa-times'
-            },
+            icons: DATETIMEPICKER_ICONS,
         });
         // ('#datetimepicker').datetimepicker({
         //         format: 'YYYY/MM/DD HH:mm:ss',
